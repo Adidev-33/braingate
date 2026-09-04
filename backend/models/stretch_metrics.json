@@ -1,0 +1,26 @@
+{
+  "tox21": {
+    "roc_auc": 0.7411,
+    "balanced_accuracy": 0.681,
+    "precision": 0.5741,
+    "recall": 0.6341,
+    "f1_score": 0.6026,
+    "confusion_matrix": [
+      [
+        361,
+        135
+      ],
+      [
+        105,
+        182
+      ]
+    ],
+    "test_samples": 783
+  },
+  "esol": {
+    "rmse": 0.3693,
+    "mae": 0.2709,
+    "r2_score": 0.8505,
+    "test_samples": 112
+  }
+}

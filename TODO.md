@@ -33,5 +33,23 @@
 - [x] Prepare positioning vs. prior art (SwissADME, pkCSM).
 - [x] Prepare 2–3 backup example molecules with pre-verified predictions.
 
-## Future Ideas / Stretch Goal
-- [ ] Tox21 and ESOL multi-property scorecard endpoints + frontend tabs (only after Phase 4 is 100% complete).
+## Stretch Goal — Multi-Property Screener [IN PROGRESS]
+- [x] **Sub-phase A — Data & Models:**
+  - [x] Download & clean Tox21 and ESOL datasets via DeepChem MoleculeNet (`backend/scripts/data_prep_stretch.py`).
+  - [x] Featurize both datasets using standardized 7 RDKit descriptors (`FEATURE_NAMES`).
+  - [x] Implement composite toxicity risk flag for Tox21 (36.7% toxic, `scale_pos_weight = 1.7264`).
+  - [x] Train Tox21 XGBoost classifier (ROC-AUC: 0.7411) -> `backend/models/xgb_tox21_model.pkl`.
+  - [x] Train ESOL XGBoost regressor (R²: 0.8505, RMSE: 0.3693) -> `backend/models/xgb_esol_model.pkl`.
+  - [x] Implement `Tox21Model` & `ESOLModel` singletons (`backend/app/model_stretch.py`).
+  - [x] Implement `Tox21Explainer` & `ESOLExplainer` SHAP TreeExplainers + plain-language rationale (`backend/app/explain_stretch.py`).
+  - [x] Verify offline pipeline (`backend/scripts/test_stretch_models.py`) and non-regression of core BBB API (`backend/scripts/test_api.py`).
+- [x] **Sub-phase B — Backend API Extension:**
+  - [x] Add `POST /predict/toxicity` and `POST /predict/solubility` matching `/predict` shape.
+  - [x] Add combined `POST /predict/scorecard` with all 3 properties and synthesized executive verdict.
+  - [x] Update `/examples` to include known toxicity and solubility annotations.
+  - [x] Verify endpoints with automated test calls (`backend/scripts/test_api.py`).
+- [ ] **Sub-phase C — Frontend Tabs:**
+  - [ ] Add tabs: "BBB Permeability" (default), "Toxicity", "Solubility", "Full Scorecard".
+  - [ ] Wire single-property tabs to `/predict/toxicity` and `/predict/solubility`.
+  - [ ] Wire "Full Scorecard" tab to `/predict/scorecard`.
+  - [ ] Preserve core BBB and comparison mode functionality.

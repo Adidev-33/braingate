@@ -78,8 +78,28 @@ export default function ExampleMoleculePicker({ onSelect, selectedSmiles, disabl
                       : "bg-error/15 text-error"
                   }`}
                 >
-                  {isPerm ? "Permeable (BBB+)" : "Non-Permeable (BBB-)"}
+                  {isPerm ? "BBB+" : "BBB-"}
                 </span>
+              </div>
+
+              {/* Multi-property summary tags */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {mol.known_toxicity && (
+                  <span
+                    className={`font-mono text-[9px] uppercase px-1.5 py-0.5 rounded ${
+                      mol.known_toxicity === "non_toxic"
+                        ? "bg-emerald-500/15 text-emerald-400"
+                        : "bg-amber-500/15 text-amber-400"
+                    }`}
+                  >
+                    {mol.known_toxicity === "non_toxic" ? "Clean Tox" : "Tox Flag"}
+                  </span>
+                )}
+                {mol.known_solubility_tier && (
+                  <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-400">
+                    Sol: {mol.known_solubility_tier}
+                  </span>
+                )}
               </div>
 
               <div className="bg-surface-container-lowest p-2 rounded font-mono text-[11px] text-on-surface-variant truncate">

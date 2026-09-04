@@ -5,6 +5,9 @@ export interface ExampleMolecule {
   smiles: string;
   known_label: "permeable" | "non_permeable";
   description: string;
+  known_toxicity?: "toxic" | "non_toxic" | null;
+  known_solubility?: number | null;
+  known_solubility_tier?: "High" | "Moderate" | "Low" | null;
 }
 
 export interface FeatureDict {
@@ -32,7 +35,38 @@ export interface PredictResponse {
   permeable_probability: number;
   features: FeatureDict;
   shap_explanation: ShapItem[];
-  summary_sentence: str;
+  summary_sentence: string;
+}
+
+export interface ToxPredictResponse {
+  valid_smiles: boolean;
+  prediction: "toxic" | "non_toxic";
+  confidence: number;
+  toxic_probability: number;
+  features: FeatureDict;
+  shap_explanation: ShapItem[];
+  summary_sentence: string;
+}
+
+export interface SolubilityPredictResponse {
+  valid_smiles: boolean;
+  log_solubility: number;
+  solubility_tier: "High" | "Moderate" | "Low";
+  tier_description: string;
+  unit: string;
+  features: FeatureDict;
+  shap_explanation: ShapItem[];
+  summary_sentence: string;
+}
+
+export interface ScorecardResponse {
+  valid_smiles: boolean;
+  smiles: string;
+  features: FeatureDict;
+  bbb: PredictResponse;
+  toxicity: ToxPredictResponse;
+  solubility: SolubilityPredictResponse;
+  overall_verdict: string;
 }
 
 export interface InvalidSmilesResponse {
@@ -46,7 +80,7 @@ export interface CompareResponse {
   deciding_difference: string;
 }
 
-export async function fetchHealth(): Promise<{ status: string; model_loaded: boolean }> {
+export async function fetchHealth(): Promise<{ status: string; model_loaded: boolean; tox21_loaded?: boolean; esol_loaded?: boolean }> {
   const res = await fetch(`${API_BASE_URL}/health`);
   if (!res.ok) throw new Error("Backend service unreachable");
   return res.json();
@@ -66,12 +100,52 @@ export async function predictSmiles(smiles: string): Promise<PredictResponse> {
   });
 
   const data = await res.json();
-
   if (!res.ok || data.valid_smiles === false) {
     throw new Error(data.error || "Could not parse SMILES string. Please enter a valid chemical structure.");
   }
-
   return data as PredictResponse;
+}
+
+export async function predictToxicity(smiles: string): Promise<ToxPredictResponse> {
+  const res = await fetch(`${API_BASE_URL}/predict/toxicity`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ smiles })
+  });
+
+  const data = await res.json();
+  if (!res.ok || data.valid_smiles === false) {
+    throw new Error(data.error || "Could not parse SMILES string for toxicity evaluation.");
+  }
+  return data as ToxPredictResponse;
+}
+
+export async function predictSolubility(smiles: string): Promise<SolubilityPredictResponse> {
+  const res = await fetch(`${API_BASE_URL}/predict/solubility`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ smiles })
+  });
+
+  const data = await res.json();
+  if (!res.ok || data.valid_smiles === false) {
+    throw new Error(data.error || "Could not parse SMILES string for solubility evaluation.");
+  }
+  return data as SolubilityPredictResponse;
+}
+
+export async function predictScorecard(smiles: string): Promise<ScorecardResponse> {
+  const res = await fetch(`${API_BASE_URL}/predict/scorecard`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ smiles })
+  });
+
+  const data = await res.json();
+  if (!res.ok || data.valid_smiles === false) {
+    throw new Error(data.error || "Could not parse SMILES string for candidate scorecard.");
+  }
+  return data as ScorecardResponse;
 }
 
 export async function compareSmiles(smiles1: string, smiles2: string): Promise<CompareResponse> {
@@ -85,6 +159,5 @@ export async function compareSmiles(smiles1: string, smiles2: string): Promise<C
   if (!res.ok) {
     throw new Error(data.error || "Failed to run molecule comparison");
   }
-
   return data as CompareResponse;
 }

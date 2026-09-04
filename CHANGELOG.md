@@ -4,6 +4,27 @@ All notable changes to the BrainGate project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - Stretch Goal Sub-phase B: Backend API Extension
+- Updated `backend/app/schemas.py`: Added `ToxPredictResponse`, `SolubilityPredictResponse`, `ScorecardResponse`, and enhanced `ExampleMolecule` with optional `known_toxicity`, `known_solubility`, and `known_solubility_tier`.
+- Updated `backend/app/main.py`:
+  - Added `POST /predict/toxicity`: Returns Tox21 toxicity prediction, probability, 7 SHAP attributions, and plain-language explanation.
+  - Added `POST /predict/solubility`: Returns ESOL logS, qualitative solubility tier, 7 SHAP attributions, and plain-language explanation.
+  - Added `POST /predict/scorecard`: Multi-property screener computing BBB, toxicity, and solubility in a single call with unified executive summary verdict.
+  - Enriched `GET /examples` with benchmark experimental labels.
+  - Updated `GET /health` to verify all 3 model engines are loaded and healthy.
+- Updated `backend/scripts/test_api.py`: Automated test suite for all 8 endpoints (HTTP 200 / 422 contract verification).
+
+- Created `backend/scripts/data_prep_stretch.py`: Downloaded, cleaned, and featurized MoleculeNet Tox21 (7,823 molecules) and ESOL/Delaney (1,117 molecules) using the standardized 7 RDKit descriptors.
+- Established composite toxicity risk flag for Tox21 (36.7% toxic vs 63.3% non-toxic across 12 stress/receptor assays, `scale_pos_weight = 1.7264`).
+- Created `backend/scripts/train_stretch_models.py`:
+  - Trained Tox21 XGBoost classifier (**0.7411 ROC-AUC**, 0.6810 Balanced Accuracy, 0.6026 F1). Saved to `backend/models/xgb_tox21_model.pkl`.
+  - Trained ESOL XGBoost regressor (**R² = 0.8505**, **RMSE = 0.3693** log mol/L, MAE = 0.2709 log mol/L). Saved to `backend/models/xgb_esol_model.pkl`.
+  - Saved test evaluation metrics to `backend/models/stretch_metrics.json`.
+- Created `backend/app/model_stretch.py`: Singleton managers `Tox21Model` and `ESOLModel` with prediction inference methods and qualitative solubility tiering (High > -2.0, Moderate -4.0 to -2.0, Low < -4.0).
+- Created `backend/app/explain_stretch.py`: Added `Tox21Explainer` and `ESOLExplainer` SHAP TreeExplainers with chemist-friendly natural language translations and 1-sentence summaries.
+- Created `backend/scripts/test_stretch_models.py`: Verified multi-property inference and SHAP explainability on Caffeine, Dopamine, and Diazepam.
+- Confirmed 100% non-regression of the existing BBB pipeline via `backend/scripts/test_api.py`.
+
 ### Added - Phase 1: Data & Model Pipeline
 - Created `backend/scripts/data_prep.py`: Downloaded, validated, and deduplicated MoleculeNet BBBP dataset into `backend/data/processed/bbbp_cleaned.csv` (1,975 valid molecules).
 - Created `backend/app/features.py`: Computes 7 RDKit molecular descriptors (MW, LogP, TPSA, Donors, Acceptors, Rotatable Bonds, Aromatic Rings).

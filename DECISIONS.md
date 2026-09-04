@@ -34,8 +34,6 @@ Use 7 interpretable RDKit molecular descriptors (MW, LogP, TPSA, Donors, Accepto
 **Reason:**
 High-dimensional molecular fingerprints (e.g. 2048-bit ECFP4) act as black-box sub-structure vectors where individual bits are difficult to explain to medicinal chemists. The 7 physical descriptors directly map to human-understandable pharmacokinetic properties (CNS MPO guidelines) and allow plain-language SHAP explanations.
 
----
-
 ### 2026-09-04 — Model Architecture & Imbalance Strategy
 
 **Decision:**
@@ -43,3 +41,18 @@ Use XGBoost classifier with `scale_pos_weight` set to ratio of negative to posit
 
 **Reason:**
 BBBP dataset is imbalanced (76.5% permeable vs 23.5% non-permeable). Tree-based gradient boosting allows exact SHAP TreeExplainer calculation and high ROC-AUC performance (0.8891 achieved).
+
+-----
+
+### 2026-09-04 — Stretch Goal: Tox21 Composite Toxicity Risk & ESOL Regression
+
+**Decision:**
+For Tox21 multi-task toxicity modeling (12 assay targets), collapse assays into a composite biological toxicity risk flag: `toxic = 1` if active on >= 1 tested assay, `non_toxic = 0` if negative across all tested assays. For ESOL, train an XGBoost regressor predicting continuous `log_solubility` (log mol/L). Both reuse the standardized 7 RDKit descriptors and dedicated SHAP TreeExplainers.
+
+**Reason:**
+Individual Tox21 assays are extremely sparse (e.g., p53 has only 6.2% active hits, PPAR-gamma has 2.9%), which causes high label sparsity and ignores off-target liabilities in the other 11 pathways. The composite toxicity flag provides a comprehensive early-stage screening filter (36.7% toxic vs 63.3% non-toxic across 7,823 compounds) with `scale_pos_weight = 1.7264`. This directly maps to a clean `toxic` vs `non_toxic` confidence score and SHAP attribution matching the existing BBB UI patterns.
+
+**Alternatives Considered:**
+- Single-assay classifier (e.g. p53 only): Misses toxicity on other pathways (AhR, mitochondrial membrane potential, estrogen receptors).
+- 12 separate multi-output classifiers: Adds excessive cognitive load to the candidate scorecard and complicates single-card UI presentation.
+

@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field
 class HealthResponse(BaseModel):
     status: str = Field(..., example="healthy")
     model_loaded: bool = Field(..., example=True)
+    tox21_loaded: bool = Field(True, example=True)
+    esol_loaded: bool = Field(True, example=True)
 
 
 class ExampleMolecule(BaseModel):
@@ -12,6 +14,9 @@ class ExampleMolecule(BaseModel):
     smiles: str = Field(..., example="CN1C=NC2=C1C(=O)N(C(=O)N2C)C")
     known_label: str = Field(..., example="permeable")
     description: str = Field(..., example="Central nervous system stimulant")
+    known_toxicity: Optional[str] = Field(None, example="toxic", description="Known Tox21 assay status if available")
+    known_solubility: Optional[float] = Field(None, example=0.9633, description="Known experimental log solubility (log mol/L) if available")
+    known_solubility_tier: Optional[str] = Field(None, example="High", description="Solubility classification tier")
 
 
 class PredictRequest(BaseModel):
@@ -34,6 +39,37 @@ class PredictResponse(BaseModel):
     features: Dict[str, float] = Field(..., description="Dict of computed 7 RDKit descriptors")
     shap_explanation: List[ShapItem] = Field(..., description="Ordered feature SHAP importance list with plain-text sentences")
     summary_sentence: str = Field(..., example="Predicted to cross the BBB, primarily driven by favorable h-bond donors and molecular weight.")
+
+
+class ToxPredictResponse(BaseModel):
+    valid_smiles: bool = Field(True, example=True)
+    prediction: str = Field(..., example="non_toxic", description="'toxic' or 'non_toxic'")
+    confidence: float = Field(..., example=0.68, description="Model confidence score (0.0 to 1.0)")
+    toxic_probability: float = Field(..., example=0.32, description="Probability of toxic hit")
+    features: Dict[str, float] = Field(..., description="Dict of computed 7 RDKit descriptors")
+    shap_explanation: List[ShapItem] = Field(..., description="Ordered feature SHAP importance list with plain-text sentences")
+    summary_sentence: str = Field(..., example="Predicted low overall toxicity risk, supported by favorable lipophilicity.")
+
+
+class SolubilityPredictResponse(BaseModel):
+    valid_smiles: bool = Field(True, example=True)
+    log_solubility: float = Field(..., example=0.8989, description="Predicted log solubility in log(mol/L)")
+    solubility_tier: str = Field(..., example="High", description="Classification: 'High', 'Moderate', or 'Low'")
+    tier_description: str = Field(..., example="Highly soluble in aqueous media (> 10 mM)")
+    unit: str = Field("log(mol/L)", example="log(mol/L)")
+    features: Dict[str, float] = Field(..., description="Dict of computed 7 RDKit descriptors")
+    shap_explanation: List[ShapItem] = Field(..., description="Ordered feature SHAP importance list with plain-text sentences")
+    summary_sentence: str = Field(..., example="Aqueous solubility favored, primarily driven by lipophilicity and h-bond donors.")
+
+
+class ScorecardResponse(BaseModel):
+    valid_smiles: bool = Field(True, example=True)
+    smiles: str = Field(..., example="CN1C=NC2=C1C(=O)N(C(=O)N2C)C")
+    features: Dict[str, float] = Field(..., description="Dict of computed 7 RDKit descriptors")
+    bbb: PredictResponse = Field(..., description="Full BBB permeability prediction and SHAP block")
+    toxicity: ToxPredictResponse = Field(..., description="Full Tox21 toxicity prediction and SHAP block")
+    solubility: SolubilityPredictResponse = Field(..., description="Full ESOL solubility prediction and SHAP block")
+    overall_verdict: str = Field(..., example="Candidate profile: Favorable BBB penetration, low toxicity risk, and high aqueous solubility.")
 
 
 class InvalidSmilesResponse(BaseModel):

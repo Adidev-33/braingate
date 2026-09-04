@@ -12,11 +12,16 @@ if PROJECT_ROOT not in sys.path:
 from backend.app.features import compute_descriptors
 from backend.app.model import BBBModel
 from backend.app.explain import SHAPExplainer
+from backend.app.model_stretch import Tox21Model, ESOLModel
+from backend.app.explain_stretch import Tox21Explainer, ESOLExplainer
 from backend.app.schemas import (
     HealthResponse,
     ExampleMolecule,
     PredictRequest,
     PredictResponse,
+    ToxPredictResponse,
+    SolubilityPredictResponse,
+    ScorecardResponse,
     InvalidSmilesResponse,
     CompareRequest,
     CompareResponse
@@ -24,8 +29,8 @@ from backend.app.schemas import (
 
 app = FastAPI(
     title="BrainGate API",
-    description="Explainable Blood-Brain Barrier (BBB) Permeability Predictor API",
-    version="1.0.0"
+    description="Explainable Blood-Brain Barrier (BBB) Permeability & Multi-Property Candidate Screener API",
+    version="2.0.0"
 )
 
 # Enable CORS for frontend cross-origin requests
@@ -37,50 +42,74 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Curated reference example molecules for demonstration
+# Curated reference example molecules with known multi-property annotations
 EXAMPLE_MOLECULES = [
     ExampleMolecule(
         name="Caffeine",
         smiles="CN1C=NC2=C1C(=O)N(C(=O)N2C)C",
         known_label="permeable",
-        description="Central nervous system stimulant found in coffee and tea. Readily crosses the blood-brain barrier."
+        description="Central nervous system stimulant found in coffee and tea. Readily crosses the blood-brain barrier.",
+        known_toxicity="toxic",
+        known_solubility=0.9633,
+        known_solubility_tier="High"
     ),
     ExampleMolecule(
         name="Diazepam",
         smiles="CN1C(=O)CN=C(c2ccccc2)c2cc(Cl)ccc21",
         known_label="permeable",
-        description="Benzodiazepine medication (Valium) used to treat anxiety and seizures. Highly brain-permeable."
+        description="Benzodiazepine medication (Valium) used to treat anxiety and seizures. Highly brain-permeable.",
+        known_toxicity="toxic",
+        known_solubility=-0.4292,
+        known_solubility_tier="High"
     ),
     ExampleMolecule(
         name="Atenolol",
         smiles="CC(C)NCC(O)COc1ccc(CC(N)=O)cc1",
         known_label="non_permeable",
-        description="Hydrophilic beta-blocker used for hypertension. Minimal central nervous system penetration."
+        description="Hydrophilic beta-blocker used for hypertension. Minimal central nervous system penetration.",
+        known_toxicity="non_toxic",
+        known_solubility=None,
+        known_solubility_tier=None
     ),
     ExampleMolecule(
         name="Dopamine",
         smiles="NCCc1ccc(O)c(O)c1",
         known_label="non_permeable",
-        description="Endogenous neurotransmitter. Polar catecholamine structure prevents direct passive BBB penetration."
+        description="Endogenous neurotransmitter. Polar catecholamine structure prevents direct passive BBB penetration.",
+        known_toxicity="toxic",
+        known_solubility=None,
+        known_solubility_tier=None
     )
 ]
 
-# Initialize model and SHAP explainer singletons on startup
+
+# Initialize models and SHAP explainers singletons on startup
 @app.on_event("startup")
 def startup_event():
-    print("FastAPI Startup: Initializing BBB Model and SHAP Explainer singletons...")
+    print("FastAPI Startup: Initializing BBB, Tox21, and ESOL Models and SHAP Explainer singletons...")
     _ = BBBModel()
     _ = SHAPExplainer()
-    print("FastAPI Startup: Engine initialization complete.")
+    _ = Tox21Model()
+    _ = Tox21Explainer()
+    _ = ESOLModel()
+    _ = ESOLExplainer()
+    print("FastAPI Startup: All model engines and SHAP explainers initialized successfully.")
 
 
 @app.get("/health", response_model=HealthResponse, tags=["Health"])
 def health_check():
-    """Liveness check endpoint to verify backend service readiness."""
+    """Liveness check endpoint to verify backend service readiness across all models."""
     try:
-        model = BBBModel()
-        loaded = model.get_raw_model() is not None
-        return HealthResponse(status="healthy", model_loaded=loaded)
+        bbb_loaded = BBBModel().get_raw_model() is not None
+        tox_loaded = Tox21Model().get_raw_model() is not None
+        esol_loaded = ESOLModel().get_raw_model() is not None
+        healthy = bbb_loaded and tox_loaded and esol_loaded
+        return HealthResponse(
+            status="healthy" if healthy else "degraded",
+            model_loaded=bbb_loaded,
+            tox21_loaded=tox_loaded,
+            esol_loaded=esol_loaded
+        )
     except Exception as e:
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -90,7 +119,7 @@ def health_check():
 
 @app.get("/examples", response_model=List[ExampleMolecule], tags=["Examples"])
 def get_example_molecules():
-    """Returns a curated list of reference example molecules with known BBB permeability labels."""
+    """Returns a curated list of reference example molecules with known BBB permeability, toxicity, and solubility labels."""
     return EXAMPLE_MOLECULES
 
 
@@ -135,6 +164,191 @@ def predict_bbbp(request: PredictRequest):
         shap_explanation=shap_res["shap_explanation"],
         summary_sentence=shap_res["summary_sentence"]
     )
+
+
+@app.post(
+    "/predict/toxicity",
+    response_model=ToxPredictResponse,
+    responses={422: {"model": InvalidSmilesResponse}},
+    tags=["Toxicity"]
+)
+def predict_toxicity(request: PredictRequest):
+    """
+    Predicts cellular stress response and nuclear receptor toxicity liability via Tox21 model.
+    Returns toxicity flag ('toxic' | 'non_toxic'), confidence, SHAP attributions, and plain-language rationale.
+    """
+    smiles_input = request.smiles.strip() if request.smiles else ""
+
+    feature_dict = compute_descriptors(smiles_input)
+    if feature_dict is None:
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={
+                "valid_smiles": False,
+                "error": f"Could not parse SMILES string '{smiles_input}'. Please enter a valid chemical structure."
+            }
+        )
+
+    model = Tox21Model()
+    pred_res = model.predict(feature_dict)
+
+    explainer = Tox21Explainer()
+    shap_res = explainer.explain(feature_dict)
+
+    return ToxPredictResponse(
+        valid_smiles=True,
+        prediction=pred_res["prediction"],
+        confidence=pred_res["confidence"],
+        toxic_probability=pred_res["toxic_probability"],
+        features=feature_dict,
+        shap_explanation=shap_res["shap_explanation"],
+        summary_sentence=shap_res["summary_sentence"]
+    )
+
+
+@app.post(
+    "/predict/solubility",
+    response_model=SolubilityPredictResponse,
+    responses={422: {"model": InvalidSmilesResponse}},
+    tags=["Solubility"]
+)
+def predict_solubility(request: PredictRequest):
+    """
+    Predicts aqueous log solubility (logS) via ESOL regression model.
+    Returns numerical logS, qualitative solubility tier, SHAP attributions, and plain-language rationale.
+    """
+    smiles_input = request.smiles.strip() if request.smiles else ""
+
+    feature_dict = compute_descriptors(smiles_input)
+    if feature_dict is None:
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={
+                "valid_smiles": False,
+                "error": f"Could not parse SMILES string '{smiles_input}'. Please enter a valid chemical structure."
+            }
+        )
+
+    model = ESOLModel()
+    pred_res = model.predict(feature_dict)
+
+    explainer = ESOLExplainer()
+    shap_res = explainer.explain(feature_dict)
+
+    return SolubilityPredictResponse(
+        valid_smiles=True,
+        log_solubility=pred_res["log_solubility"],
+        solubility_tier=pred_res["solubility_tier"],
+        tier_description=pred_res["tier_description"],
+        unit=pred_res["unit"],
+        features=feature_dict,
+        shap_explanation=shap_res["shap_explanation"],
+        summary_sentence=shap_res["summary_sentence"]
+    )
+
+
+@app.post(
+    "/predict/scorecard",
+    response_model=ScorecardResponse,
+    responses={422: {"model": InvalidSmilesResponse}},
+    tags=["Scorecard"]
+)
+def predict_scorecard(request: PredictRequest):
+    """
+    Multi-property drug candidate screener: computes BBB permeability, Tox21 toxicity risk,
+    and ESOL aqueous solubility in a single unified call with dedicated SHAP explanations and an executive verdict.
+    """
+    smiles_input = request.smiles.strip() if request.smiles else ""
+
+    # Compute RDKit descriptors once for all models
+    feature_dict = compute_descriptors(smiles_input)
+    if feature_dict is None:
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={
+                "valid_smiles": False,
+                "error": f"Could not parse SMILES string '{smiles_input}'. Please enter a valid chemical structure."
+            }
+        )
+
+    # 1. BBB Permeability
+    bbb_model = BBBModel()
+    bbb_pred = bbb_model.predict(feature_dict)
+    bbb_explainer = SHAPExplainer()
+    bbb_shap = bbb_explainer.explain(feature_dict)
+    bbb_res = PredictResponse(
+        valid_smiles=True,
+        prediction=bbb_pred["prediction"],
+        confidence=bbb_pred["confidence"],
+        permeable_probability=bbb_pred["permeable_probability"],
+        features=feature_dict,
+        shap_explanation=bbb_shap["shap_explanation"],
+        summary_sentence=bbb_shap["summary_sentence"]
+    )
+
+    # 2. Tox21 Toxicity
+    tox_model = Tox21Model()
+    tox_pred = tox_model.predict(feature_dict)
+    tox_explainer = Tox21Explainer()
+    tox_shap = tox_explainer.explain(feature_dict)
+    tox_res = ToxPredictResponse(
+        valid_smiles=True,
+        prediction=tox_pred["prediction"],
+        confidence=tox_pred["confidence"],
+        toxic_probability=tox_pred["toxic_probability"],
+        features=feature_dict,
+        shap_explanation=tox_shap["shap_explanation"],
+        summary_sentence=tox_shap["summary_sentence"]
+    )
+
+    # 3. ESOL Solubility
+    esol_model = ESOLModel()
+    esol_pred = esol_model.predict(feature_dict)
+    esol_explainer = ESOLExplainer()
+    esol_shap = esol_explainer.explain(feature_dict)
+    esol_res = SolubilityPredictResponse(
+        valid_smiles=True,
+        log_solubility=esol_pred["log_solubility"],
+        solubility_tier=esol_pred["solubility_tier"],
+        tier_description=esol_pred["tier_description"],
+        unit=esol_pred["unit"],
+        features=feature_dict,
+        shap_explanation=esol_shap["shap_explanation"],
+        summary_sentence=esol_shap["summary_sentence"]
+    )
+
+    # Synthesize overall candidate verdict
+    verdict = generate_scorecard_verdict(bbb_pred, tox_pred, esol_pred)
+
+    return ScorecardResponse(
+        valid_smiles=True,
+        smiles=smiles_input,
+        features=feature_dict,
+        bbb=bbb_res,
+        toxicity=tox_res,
+        solubility=esol_res,
+        overall_verdict=verdict
+    )
+
+
+def generate_scorecard_verdict(bbb: dict, tox: dict, esol: dict) -> str:
+    """Synthesizes a holistic executive screening summary across BBB, toxicity, and solubility."""
+    is_perm = bbb["prediction"] == "permeable"
+    is_safe = tox["prediction"] == "non_toxic"
+    tier = esol["solubility_tier"]
+
+    if is_perm and is_safe and tier in ["High", "Moderate"]:
+        return "Optimal Candidate Profile: High blood-brain barrier permeability, low cellular toxicity risk, and favorable aqueous solubility. Prime candidate for lead progression."
+    elif is_perm and not is_safe:
+        return "CNS Active with Toxicity Liability: Crosses the blood-brain barrier effectively, but flagged with potential cellular/receptor toxicity risk requiring medicinal chemistry derisking."
+    elif not is_perm and is_safe and tier in ["High", "Moderate"]:
+        return "Peripheral Drug Profile: Favorable safety and solubility profile, but restricted from passive BBB entry; suitable for peripheral targets or requires prodrug engineering."
+    elif not is_perm and not is_safe:
+        return "High-Risk Profile: Restricted BBB permeability and flagged for potential toxicity liability; low prioritization for central nervous system indications."
+    elif is_perm and tier == "Low":
+        return "CNS Active with Solubility Risk: Permeable into the brain, but poor aqueous solubility may cause dissolution or formulation challenges."
+    else:
+        return f"Mixed Screening Profile: BBB {'permeable' if is_perm else 'restricted'}, {tox['prediction']} risk, {tier.lower()} aqueous solubility."
 
 
 @app.post(
