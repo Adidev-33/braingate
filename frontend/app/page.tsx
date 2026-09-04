@@ -59,33 +59,6 @@ export default function Home() {
 
       <main className="w-full pt-20 pb-16 min-h-screen">
         <div className="max-w-7xl w-full mx-auto px-4 sm:px-8 flex flex-col gap-6">
-          {/* Top Status Bar & Context Banner */}
-          <div className="flex flex-wrap items-center justify-between gap-4 bg-surface-container-low/70 backdrop-blur-md px-6 py-3 rounded-xl shadow-sm border border-slate-800/60">
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="flex items-center gap-1.5 bg-surface-container-highest/80 px-3 py-1 rounded">
-                <span className="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_rgba(78,222,163,0.8)]" />
-                <span className="font-mono text-xs uppercase tracking-wider text-primary font-bold">
-                  MULTI-PROPERTY SCREENER V2.0
-                </span>
-              </div>
-              <span className="text-outline-variant font-mono text-xs hidden sm:inline">•</span>
-              <span className="font-mono text-xs text-on-surface-variant flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[15px] text-tertiary">check_circle</span>
-                Checkpoints: <strong className="text-on-surface">BBBP • Tox21 • ESOL</strong>
-              </span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px] text-on-surface-variant">memory</span>
-                <span className="font-mono text-xs text-on-surface-variant">FastAPI Multi-Task Active</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-surface-container px-3 py-1 rounded">
-                <span className="font-mono text-[10px] uppercase text-outline">Compute node</span>
-                <span className="font-mono text-xs text-primary font-bold">localhost:8000</span>
-              </div>
-            </div>
-          </div>
-
           {/* Main Workspace / Tab Switcher */}
           {activeTab === "compare" ? (
             <ComparisonView />

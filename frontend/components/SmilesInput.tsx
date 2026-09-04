@@ -97,29 +97,6 @@ export default function SmilesInput({
               disabled={loading}
               className="w-full bg-transparent resize-none font-mono text-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-1 focus:ring-primary leading-relaxed tracking-wide selection:bg-primary/30"
             />
-
-            {/* Inline Verification Badge Strip */}
-            <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800/60">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-high">
-                  <span className="material-symbols-outlined text-[14px] text-tertiary">memory</span>
-                  <span className="font-mono text-[10px] text-on-surface-variant">
-                    RDKit Canonical 2026.03
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-tertiary-container/20 text-tertiary">
-                  <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
-                  <span className="font-mono text-[10px]">Hückel Aromaticity Valid</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded bg-tertiary/10 text-tertiary">
-                <span className="material-symbols-outlined text-[14px]">check</span>
-                <span className="font-mono text-[10px] font-semibold tracking-wider uppercase">
-                  VALID CHEMICAL GRAPH
-                </span>
-              </div>
-            </div>
           </div>
 
           {/* Molecular Parameter Badges Preview Bar */}
