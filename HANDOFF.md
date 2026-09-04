@@ -1,10 +1,10 @@
 # Handoff
 
 ## Last handed off
-2026-09-04 18:59 IST — by Antigravity Agent
+2026-09-04 21:55 IST — by Antigravity Agent
 
 ## Right now, the project is:
-Phases 1, 2, and 3 **100% COMPLETE**. Next.js frontend in `frontend/` converted from Google Stitch design export (`stitch_braingate_bbb_predictor/`) and fully wired to FastAPI backend (`http://localhost:8000`). `.gitignore` created and `README.md` updated with complete step-by-step installation instructions.
+Phases 1, 2, 3, and 4 are **100% COMPLETE**. All documentation updated, UI responsive testing completed, screenshot evidence captured for all three UI states + comparison mode + mobile layout, pitch materials and prior art positioning finalized, backup example molecules prepared.
 
 ## To get running immediately
 
@@ -17,14 +17,20 @@ Phases 1, 2, and 3 **100% COMPLETE**. Next.js frontend in `frontend/` converted 
 4. Open browser: `http://localhost:3000`
 
 ## What I was doing when I stopped
-Expanded [`README.md`](file:///c:/Users/adide/Music/braingate/README.md) with comprehensive installation steps, setup prerequisites, environment variable configuration, API contract documentation, and troubleshooting tips. Updated all project documentation files (`PROJECT_STATUS.md`, `CHANGELOG.md`, `HANDOFF.md`).
+Finished Phase 4 — Polish & Pitch:
+1. Documentation sync (`DECISIONS.md`, `CHANGELOG.md`, `TODO.md`).
+2. UI polish & responsive verification (Desktop + Mobile 375x812).
+3. Screenshot verification of all 3 UI states (Permeable, Non-Permeable distinct visual design, HTTP 422 Invalid SMILES Error Banner) and Compare mode.
+4. Short pitch written bridging fast BBB candidate screening to patient health outcomes, plus positioning vs SwissADME / pkCSM.
+5. 3 Backup example molecules prepared with pre-verified predictions.
+6. Updated `HANDOFF.md`, `PROJECT_STATUS.md`, and `README.md`.
 
 ## Do this next
-1. Proceed to Phase 4 (Polish & Pitch materials).
-2. Final visual polish and responsive checks.
+1. Present completed Phase 4 pitch materials, backup molecules, and screenshot evidence to user for final review.
+2. (Optional Stretch Goal): Tox21 / ESOL multi-property scorecard if requested.
 
 ## Do NOT touch / known fragile areas
 - FastAPI backend on port 8000 (`uvicorn app.main:app --port 8000`). Next.js frontend on port 3000.
 
 ## Blockers right now
-- None. Ready for Phase 4.
+- None. Project core implementation is 100% complete.

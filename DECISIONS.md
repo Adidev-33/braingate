@@ -2,13 +2,27 @@
 
 ## Decision Log
 
-### 2026-09-04 — Decoupled 2-Service Architecture (FastAPI + Next.js)
+### 2026-09-04 — Decoupled 2-Service Architecture (Switch from Streamlit to Next.js + FastAPI)
 
 **Decision:**
-Use FastAPI (Python 3.10+) for the backend service handling RDKit molecular descriptor calculations, XGBoost inference, and SHAP explainability. Use Next.js (React/TypeScript) for the frontend UI.
+Switch from the originally planned single-service Streamlit application to a decoupled 2-service architecture: FastAPI (Python 3.10+) backend service + Next.js (TypeScript + Tailwind CSS) frontend UI.
 
 **Reason:**
-RDKit, XGBoost, and SHAP require C extensions and Python ecosystem libraries with no native JavaScript equivalents. Micro-service decoupling allows clean interface boundaries and easy deployment.
+Streamlit provided limited layout customizability, animation capabilities, and presentation flexibility for hackathon judging. Decoupling into Next.js + FastAPI allows a state-of-the-art UI with high visual aesthetics while preserving the full C++ / Python RDKit, XGBoost, and SHAP computational pipeline.
+
+**Alternatives Considered:**
+- Pure Streamlit / Gradio application: Low visual fidelity and non-standard web layout.
+- Next.js API routes calling Python subprocesses: High request latency and fragile C-extension environment bindings.
+
+---
+
+### 2026-09-04 — Stitch UI Workflow: Hand-Crafting on Web UI & Manual HTML/PNG Export Conversion
+
+**Decision:**
+After encountering an authentication failure with the Google Stitch MCP connector in the automated tool environment, pivot to hand-crafting the UI screens directly on the Google Stitch web interface and exporting the static HTML/PNG artifacts (`stitch_braingate_bbb_predictor/`) as the visual source of truth.
+
+**Reason:**
+Preserves the high visual aesthetics designed in Google Stitch while overcoming MCP authentication friction. The static HTML/PNG export served as the exact specification for building modular Next.js React components (`Header`, `SmilesInput`, `PredictionCard`, `ShapBarChart`, `FeaturesTable`) wired to real backend endpoints.
 
 ---
 
