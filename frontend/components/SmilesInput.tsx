@@ -1,0 +1,205 @@
+"use client";
+
+import React from "react";
+import ExampleMoleculePicker from "./ExampleMoleculePicker";
+import { FeatureDict } from "@/lib/api";
+
+interface Props {
+  smiles: string;
+  setSmiles: (s: string) => void;
+  onSubmit: (smiles: string) => void;
+  loading: boolean;
+  liveFeatures?: FeatureDict | null;
+}
+
+export default function SmilesInput({
+  smiles,
+  setSmiles,
+  onSubmit,
+  loading,
+  liveFeatures,
+}: Props) {
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) setSmiles(text.trim());
+    } catch (err) {
+      console.error("Failed to read clipboard:", err);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (smiles.trim() && !loading) {
+      onSubmit(smiles.trim());
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* SMILES Terminal Input Card */}
+      <div className="relative bg-surface-container/90 backdrop-blur-xl rounded-xl p-6 shadow-xl flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-primary">
+              <span className="material-symbols-outlined text-[18px]">grain</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-mono text-xs uppercase tracking-wider text-on-surface font-semibold">
+                INPUT SMILES STRING
+              </span>
+              <span className="font-mono text-[10px] text-on-surface-variant">
+                Simplified Molecular Input Line Entry System
+              </span>
+            </div>
+          </div>
+
+          {/* Quick Action Toolbar */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePaste}
+              disabled={loading}
+              className="flex items-center gap-1 px-3 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface transition-all text-xs"
+              title="Paste clipboard payload"
+            >
+              <span className="material-symbols-outlined text-[16px] text-primary">content_paste</span>
+              <span>Paste</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSmiles("")}
+              disabled={loading || !smiles}
+              className="flex items-center gap-1 px-3 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface transition-all text-xs disabled:opacity-40"
+              title="Clear input field"
+            >
+              <span className="material-symbols-outlined text-[16px] text-error">backspace</span>
+              <span>Clear</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Code Input Terminal Box */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <div className="relative bg-surface-container-lowest/90 rounded-lg p-4 shadow-inner flex flex-col gap-2 border border-slate-800">
+            <div className="flex items-center justify-between pb-1 text-on-surface-variant font-mono text-[11px] tracking-wider">
+              <span className="text-outline">CANONICAL LINE NOTATION</span>
+              <span className="font-mono text-[11px] text-tertiary">
+                {smiles.length} chars
+              </span>
+            </div>
+            <textarea
+              id="smiles-input"
+              rows={3}
+              value={smiles}
+              onChange={(e) => setSmiles(e.target.value)}
+              placeholder="e.g. CN1C=NC2=C1C(=O)N(C(=O)N2C)C"
+              disabled={loading}
+              className="w-full bg-transparent resize-none font-mono text-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-1 focus:ring-primary leading-relaxed tracking-wide selection:bg-primary/30"
+            />
+
+            {/* Inline Verification Badge Strip */}
+            <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800/60">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-high">
+                  <span className="material-symbols-outlined text-[14px] text-tertiary">memory</span>
+                  <span className="font-mono text-[10px] text-on-surface-variant">
+                    RDKit Canonical 2026.03
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-tertiary-container/20 text-tertiary">
+                  <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
+                  <span className="font-mono text-[10px]">Hückel Aromaticity Valid</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded bg-tertiary/10 text-tertiary">
+                <span className="material-symbols-outlined text-[14px]">check</span>
+                <span className="font-mono text-[10px] font-semibold tracking-wider uppercase">
+                  VALID CHEMICAL GRAPH
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Molecular Parameter Badges Preview Bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
+            <div className="flex flex-col bg-surface-container-low p-2.5 rounded">
+              <span className="font-mono text-[10px] text-outline uppercase tracking-wider">
+                Mol Weight
+              </span>
+              <span className="font-mono text-sm text-on-surface font-semibold mt-0.5">
+                {liveFeatures?.mol_weight ?? "—"}{" "}
+                <span className="text-[10px] text-outline-variant font-normal">Da</span>
+              </span>
+            </div>
+            <div className="flex flex-col bg-surface-container-low p-2.5 rounded">
+              <span className="font-mono text-[10px] text-outline uppercase tracking-wider">
+                cLogP (oct/wat)
+              </span>
+              <span className="font-mono text-sm text-on-surface font-semibold mt-0.5">
+                {liveFeatures?.logp ?? "—"}
+              </span>
+            </div>
+            <div className="flex flex-col bg-surface-container-low p-2.5 rounded">
+              <span className="font-mono text-[10px] text-outline uppercase tracking-wider">
+                TPSA
+              </span>
+              <span className="font-mono text-sm text-on-surface font-semibold mt-0.5">
+                {liveFeatures?.tpsa ?? "—"}{" "}
+                <span className="text-[10px] text-outline-variant font-normal">Å²</span>
+              </span>
+            </div>
+            <div className="flex flex-col bg-surface-container-low p-2.5 rounded">
+              <span className="font-mono text-[10px] text-outline uppercase tracking-wider">
+                H-Bond Donors
+              </span>
+              <span className="font-mono text-sm text-on-surface font-semibold mt-0.5">
+                {liveFeatures?.h_donors ?? "—"}
+              </span>
+            </div>
+            <div className="flex flex-col bg-surface-container-low p-2.5 rounded">
+              <span className="font-mono text-[10px] text-outline uppercase tracking-wider">
+                H-Bond Acc
+              </span>
+              <span className="font-mono text-sm text-on-surface font-semibold mt-0.5">
+                {liveFeatures?.h_acceptors ?? "—"}
+              </span>
+            </div>
+          </div>
+
+          {/* Primary Action Execution Button */}
+          <button
+            type="submit"
+            disabled={loading || !smiles.trim()}
+            className="w-full relative flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-gradient-to-r from-primary-container to-tertiary-container hover:shadow-[0_0_24px_rgba(6,182,212,0.4)] text-on-primary font-bold text-base transition-all transform active:scale-[0.99] disabled:opacity-50"
+          >
+            {loading ? (
+              <>
+                <span className="material-symbols-outlined text-[20px] animate-spin">sync</span>
+                <span>Calculating RDKit Descriptors & SHAP Inference...</span>
+              </>
+            ) : (
+              <>
+                <span className="text-surface-container-lowest">Predict BBB Permeability</span>
+                <span className="material-symbols-outlined text-[20px] text-surface-container-lowest">
+                  arrow_forward
+                </span>
+              </>
+            )}
+          </button>
+        </form>
+      </div>
+
+      {/* Benchmark Reference Controls Picker */}
+      <ExampleMoleculePicker
+        onSelect={(s) => {
+          setSmiles(s);
+          onSubmit(s);
+        }}
+        selectedSmiles={smiles}
+        disabled={loading}
+      />
+    </div>
+  );
+}

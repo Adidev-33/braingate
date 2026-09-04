@@ -1,0 +1,43 @@
+{
+  "tpsa_rank": 1,
+  "top_feature": "tpsa",
+  "ranking": [
+    {
+      "feature": "tpsa",
+      "display_name": "Topological Polar Surface Area (TPSA \u00c5\u00b2)",
+      "mean_abs_shap": 0.9529
+    },
+    {
+      "feature": "h_donors",
+      "display_name": "H-Bond Donors",
+      "mean_abs_shap": 0.5437
+    },
+    {
+      "feature": "logp",
+      "display_name": "Lipophilicity (LogP)",
+      "mean_abs_shap": 0.3466
+    },
+    {
+      "feature": "mol_weight",
+      "display_name": "Molecular Weight (Da)",
+      "mean_abs_shap": 0.2718
+    },
+    {
+      "feature": "rotatable_bonds",
+      "display_name": "Rotatable Bonds",
+      "mean_abs_shap": 0.2171
+    },
+    {
+      "feature": "aromatic_rings",
+      "display_name": "Aromatic Rings",
+      "mean_abs_shap": 0.1216
+    },
+    {
+      "feature": "h_acceptors",
+      "display_name": "H-Bond Acceptors",
+      "mean_abs_shap": 0.0966
+    }
+  ],
+  "cns_mpo_alignment_verified": true,
+  "summary": "TPSA ranked #1 among 7 descriptors, confirming alignment with CNS MPO guidelines."
+}

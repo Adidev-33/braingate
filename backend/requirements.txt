@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+rdkit
+xgboost
+scikit-learn
+shap
+pandas
+numpy
+pydantic
+python-multipart
+deepchem
+imbalanced-learn
+httpx
