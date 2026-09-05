@@ -56,3 +56,20 @@ Individual Tox21 assays are extremely sparse (e.g., p53 has only 6.2% active hit
 - Single-assay classifier (e.g. p53 only): Misses toxicity on other pathways (AhR, mitochondrial membrane potential, estrogen receptors).
 - 12 separate multi-output classifiers: Adds excessive cognitive load to the candidate scorecard and complicates single-card UI presentation.
 
+---
+
+### 2026-09-05 — PDF Report Generation Engine: ReportLab & Print-Friendly Theme
+
+**Decision:**
+Use `reportlab` (v5.0.1) on the FastAPI backend for deterministic server-side PDF generation, rendering static SHAP feature attributions via `matplotlib` and structuring tables via ReportLab `Platypus`. The report uses a print-friendly high-contrast modern biotech palette (white/slate base with emerald `#059669` favorable badges and rose `#E11D48` suboptimal alerts) and accepts `PDFReportRequest(smiles, scorecard?)` to eliminate duplicate ML computation on UI exports.
+
+**Reason:**
+1. **Zero System C-Extension Dependencies:** Unlike WeasyPrint, which requires GTK/Cairo/Pango C-libraries that introduce severe installation friction on Windows, ReportLab is a pure Python / wheel package that runs reliably in any environment.
+2. **Deterministic Layout & Single-Page Precision:** ReportLab Platypus enables exact margin, padding, and font-size calculations to guarantee that standard single-molecule screening dossiers fit onto a clean single page.
+3. **Print-Friendly Readability:** Dark UI themes waste printer toner and produce murky grayscale output; the print-friendly light palette maintains crisp legibility both on screen and on physical paper.
+4. **Backend Architecture & Stateless API:** Generating on the backend provides a direct, scriptable `POST /report/pdf` API for researchers and automation pipelines while avoiding DOM screenshot distortions from client-side canvas libraries (e.g. jsPDF / html2canvas).
+
+**Alternatives Considered:**
+- Client-side DOM screenshot (jsPDF / html2canvas): Prone to browser rendering inconsistencies, DPI blurriness, and broken page splits.
+- WeasyPrint: Requires system-level GTK/Pango/Cairo DLL bindings with high installation friction on Windows.
+

@@ -295,55 +295,16 @@ export default function ScientificAssistantPanel({
               )}
 
               <div
-                className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
+                className={`max-w-[92%] sm:max-w-[88%] rounded-2xl p-4 shadow-sm ${
                   isUser
                     ? "bg-primary text-white font-medium rounded-tr-none"
-                    : "bg-surface-container-low border border-slate-200 text-on-surface rounded-tl-none space-y-2"
+                    : "bg-surface-container-low border border-slate-200 text-on-surface rounded-tl-none"
                 }`}
               >
                 {isUser ? (
-                  <p className="font-mono text-xs text-white">{msg.content}</p>
+                  <p className="font-mono text-xs text-white leading-relaxed">{msg.content}</p>
                 ) : (
-                  <div className="space-y-2 text-xs leading-relaxed text-on-surface">
-                    {/* Formatted Markdown Rendering */}
-                    {msg.content.split("\n\n").map((para, pIdx) => {
-                      if (para.startsWith("### ")) {
-                        return (
-                          <h4 key={pIdx} className="font-bold font-mono text-sm text-primary pt-1">
-                            {para.replace("### ", "")}
-                          </h4>
-                        );
-                      } else if (para.startsWith("#### ")) {
-                        return (
-                          <h5 key={pIdx} className="font-bold font-mono text-xs text-tertiary pt-1">
-                            {para.replace("#### ", "")}
-                          </h5>
-                        );
-                      } else if (para.startsWith("> ")) {
-                        return (
-                          <blockquote key={pIdx} className="border-l-2 border-primary pl-3 py-1 bg-surface-container text-on-surface-variant italic font-mono text-[11px] rounded-r">
-                            {para.replace("> ", "")}
-                          </blockquote>
-                        );
-                      } else if (para.startsWith("- ") || para.startsWith("* ") || /^\d+\.\s/.test(para)) {
-                        return (
-                          <ul key={pIdx} className="space-y-1 pl-1">
-                            {para.split("\n").map((li, lIdx) => {
-                              const cleanLi = li.replace(/^[-*]\s+|\d+\.\s+/, "");
-                              return (
-                                <li key={lIdx} className="flex items-start gap-1.5">
-                                  <span className="text-primary font-bold">•</span>
-                                  <span>{renderFormattedInline(cleanLi)}</span>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        );
-                      } else {
-                        return <p key={pIdx}>{renderFormattedInline(para)}</p>;
-                      }
-                    })}
-                  </div>
+                  <MarkdownMessage content={msg.content} />
                 )}
               </div>
 
@@ -414,24 +375,323 @@ export default function ScientificAssistantPanel({
   );
 }
 
-// Helper to format inline bold, code pills, and scientific notation
+/**
+ * Resilient Markdown Message Renderer
+ * Supports tables, headers, blockquotes, lists, code blocks, bold, italics, and inline code.
+ */
+function MarkdownMessage({ content }: { content: string }) {
+  // 1. Normalize malformed collapsed table rows where || is used instead of newlines
+  const normalized = content
+    .replace(/\|\s*\|/g, "|\n|")
+    .replace(/\r\n/g, "\n");
+
+  const lines = normalized.split("\n");
+  const blocks: Array<
+    | { type: "heading"; level: number; text: string }
+    | { type: "blockquote"; text: string }
+    | { type: "code"; lang?: string; code: string }
+    | { type: "table"; headers: string[]; rows: string[][] }
+    | { type: "list"; items: string[]; ordered: boolean }
+    | { type: "paragraph"; text: string }
+  > = [];
+
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      i++;
+      continue;
+    }
+
+    // Code block
+    if (trimmed.startsWith("```")) {
+      const lang = trimmed.slice(3).trim();
+      const codeLines: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i].trim().startsWith("```")) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      if (i < lines.length) i++; // consume closing ```
+      blocks.push({ type: "code", lang, code: codeLines.join("\n") });
+      continue;
+    }
+
+    // Headings
+    if (trimmed.startsWith("#")) {
+      const match = trimmed.match(/^(#{1,6})\s+(.*)$/);
+      if (match) {
+        blocks.push({
+          type: "heading",
+          level: match[1].length,
+          text: match[2]
+        });
+        i++;
+        continue;
+      }
+    }
+
+    // Blockquote
+    if (trimmed.startsWith(">")) {
+      const quoteLines: string[] = [];
+      while (i < lines.length && lines[i].trim().startsWith(">")) {
+        quoteLines.push(lines[i].trim().replace(/^>\s?/, ""));
+        i++;
+      }
+      blocks.push({ type: "blockquote", text: quoteLines.join("\n") });
+      continue;
+    }
+
+    // Table detection: line starts and ends with |
+    if (trimmed.startsWith("|") && trimmed.endsWith("|") && trimmed.includes("|")) {
+      const tableLines: string[] = [];
+      while (i < lines.length && lines[i].trim().startsWith("|") && lines[i].trim().endsWith("|")) {
+        tableLines.push(lines[i].trim());
+        i++;
+      }
+
+      if (tableLines.length >= 2) {
+        const rawHeaders = tableLines[0].split("|").slice(1, -1).map((h) => h.trim());
+        let startRowIdx = 1;
+        // Check if second line is separator |---|---|
+        if (tableLines.length > 1 && /^\|(\s*:?-+:?\s*\|)+$/.test(tableLines[1])) {
+          startRowIdx = 2;
+        }
+        const dataRows: string[][] = [];
+        for (let r = startRowIdx; r < tableLines.length; r++) {
+          const rowCells = tableLines[r].split("|").slice(1, -1).map((c) => c.trim());
+          if (rowCells.some((c) => c.length > 0)) {
+            dataRows.push(rowCells);
+          }
+        }
+        blocks.push({ type: "table", headers: rawHeaders, rows: dataRows });
+        continue;
+      }
+    }
+
+    // Unordered or Ordered List
+    if (/^[-*]\s+/.test(trimmed) || /^\d+\.\s+/.test(trimmed)) {
+      const isOrdered = /^\d+\.\s+/.test(trimmed);
+      const listItems: string[] = [];
+      while (
+        i < lines.length &&
+        ((!isOrdered && /^[-*]\s+/.test(lines[i].trim())) ||
+          (isOrdered && /^\d+\.\s+/.test(lines[i].trim())))
+      ) {
+        const itemText = lines[i].trim().replace(/^[-*]\s+|\d+\.\s+/, "");
+        listItems.push(itemText);
+        i++;
+      }
+      blocks.push({ type: "list", items: listItems, ordered: isOrdered });
+      continue;
+    }
+
+    // Regular Paragraph (consume contiguous lines until blank line or special block)
+    const paraLines: string[] = [];
+    while (
+      i < lines.length &&
+      lines[i].trim() &&
+      !lines[i].trim().startsWith("```") &&
+      !lines[i].trim().startsWith("#") &&
+      !lines[i].trim().startsWith(">") &&
+      !(lines[i].trim().startsWith("|") && lines[i].trim().endsWith("|")) &&
+      !/^[-*]\s+/.test(lines[i].trim()) &&
+      !/^\d+\.\s+/.test(lines[i].trim())
+    ) {
+      paraLines.push(lines[i].trim());
+      i++;
+    }
+    if (paraLines.length > 0) {
+      blocks.push({ type: "paragraph", text: paraLines.join(" ") });
+    }
+  }
+
+  return (
+    <div className="space-y-2.5 text-xs leading-relaxed text-on-surface">
+      {blocks.map((block, idx) => {
+        if (block.type === "heading") {
+          if (block.level === 1 || block.level === 2) {
+            return (
+              <h3 key={idx} className="font-bold font-mono text-sm text-primary pt-2 pb-0.5 tracking-tight">
+                {renderFormattedInline(block.text)}
+              </h3>
+            );
+          }
+          if (block.level === 3) {
+            return (
+              <h4 key={idx} className="font-bold font-mono text-xs text-primary pt-1.5 pb-0.5 uppercase tracking-wider">
+                {renderFormattedInline(block.text)}
+              </h4>
+            );
+          }
+          return (
+            <h5 key={idx} className="font-bold font-mono text-xs text-tertiary pt-1">
+              {renderFormattedInline(block.text)}
+            </h5>
+          );
+        }
+
+        if (block.type === "blockquote") {
+          return (
+            <blockquote
+              key={idx}
+              className="border-l-2 border-primary pl-3 py-1 bg-surface-container text-on-surface-variant italic font-mono text-[11px] rounded-r my-1.5"
+            >
+              {renderFormattedInline(block.text)}
+            </blockquote>
+          );
+        }
+
+        if (block.type === "code") {
+          return (
+            <pre
+              key={idx}
+              className="bg-surface-container-lowest p-3 rounded-xl border border-slate-200 overflow-x-auto text-[11px] font-mono text-primary my-2 shadow-inner"
+            >
+              <code>{block.code}</code>
+            </pre>
+          );
+        }
+
+        if (block.type === "table") {
+          return (
+            <div
+              key={idx}
+              className="my-2.5 overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-surface-container-lowest max-w-full"
+            >
+              <table className="w-full text-left text-xs border-collapse font-sans">
+                <thead className="bg-surface-container-high border-b border-slate-200 font-mono text-[11px] text-on-surface">
+                  <tr>
+                    {block.headers.map((h, hIdx) => (
+                      <th
+                        key={hIdx}
+                        className="py-2.5 px-3.5 font-bold border-r border-slate-200 last:border-r-0 text-on-surface"
+                      >
+                        {renderFormattedInline(h)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200/70">
+                  {block.rows.map((row, rIdx) => (
+                    <tr
+                      key={rIdx}
+                      className="hover:bg-surface-container-high/40 transition-colors even:bg-surface-container-low/30"
+                    >
+                      {row.map((cell, cIdx) => (
+                        <td
+                          key={cIdx}
+                          className="py-2.5 px-3.5 text-on-surface border-r border-slate-200/50 last:border-r-0 text-[11.5px] leading-relaxed"
+                        >
+                          {renderFormattedInline(cell)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+
+        if (block.type === "list") {
+          if (block.ordered) {
+            return (
+              <ol key={idx} className="space-y-1.5 pl-1 my-1">
+                {block.items.map((item, lIdx) => (
+                  <li key={lIdx} className="flex items-start gap-2">
+                    <span className="font-mono text-primary font-bold text-[11px] shrink-0 mt-0.5">
+                      {lIdx + 1}.
+                    </span>
+                    <span>{renderFormattedInline(item)}</span>
+                  </li>
+                ))}
+              </ol>
+            );
+          }
+          return (
+            <ul key={idx} className="space-y-1.5 pl-1 my-1">
+              {block.items.map((item, lIdx) => (
+                <li key={lIdx} className="flex items-start gap-2">
+                  <span className="text-primary font-bold text-[14px] leading-none mt-0.5">•</span>
+                  <span>{renderFormattedInline(item)}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
+
+        // Paragraph: check if paragraph is a single bold line acting as a title
+        if (
+          block.text.startsWith("**") &&
+          block.text.endsWith("**") &&
+          !block.text.slice(2, -2).includes("**")
+        ) {
+          return (
+            <h4 key={idx} className="font-bold text-sm text-on-surface pt-1 tracking-tight">
+              {renderFormattedInline(block.text)}
+            </h4>
+          );
+        }
+
+        return (
+          <p key={idx} className="leading-relaxed">
+            {renderFormattedInline(block.text)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+// Helper to format inline bold, italics, code pills, and scientific notation
 function renderFormattedInline(text: string) {
-  const parts = text.split(/(\*\*.*?\*\*|`.*?`)/g);
+  if (!text) return null;
+
+  // Tokenize by inline markers: code, bold, italic, strike
+  const regex = /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|_[^_]+_|~[^~]+~)/g;
+  const parts = text.split(regex);
+
   return parts.map((part, index) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
+    if (!part) return null;
+    if (part.startsWith("`") && part.endsWith("`") && part.length >= 2) {
+      return (
+        <code
+          key={index}
+          className="px-1.5 py-0.5 rounded bg-surface-container-lowest text-primary font-mono text-[11px] border border-slate-200 font-semibold"
+        >
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    if (part.startsWith("**") && part.endsWith("**") && part.length >= 4) {
       return (
         <strong key={index} className="text-on-surface font-bold">
           {part.slice(2, -2)}
         </strong>
       );
-    } else if (part.startsWith("`") && part.endsWith("`")) {
+    }
+    if (part.startsWith("*") && part.endsWith("*") && part.length >= 2) {
       return (
-        <code
-          key={index}
-          className="px-1.5 py-0.5 rounded bg-surface-container-lowest text-primary font-mono text-[11px] border border-slate-200"
-        >
+        <em key={index} className="text-on-surface-variant italic font-medium">
           {part.slice(1, -1)}
-        </code>
+        </em>
+      );
+    }
+    if (part.startsWith("_") && part.endsWith("_") && part.length >= 2) {
+      return (
+        <em key={index} className="text-on-surface-variant italic font-medium">
+          {part.slice(1, -1)}
+        </em>
+      );
+    }
+    if (part.startsWith("~") && part.endsWith("~") && part.length >= 2) {
+      return (
+        <span key={index} className="line-through text-outline">
+          {part.slice(1, -1)}
+        </span>
       );
     }
     return part;

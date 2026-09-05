@@ -4,6 +4,23 @@ All notable changes to the BrainGate project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - Generate PDF Report Feature
+- Created `backend/app/pdf_generator.py`: Server-side PDF report generator using `reportlab` (Platypus flowables, custom typography, table styles, `NumberedCanvas` page counter) and `matplotlib` (vector-quality horizontal SHAP feature attribution bar chart). Renders a publication-grade, print-friendly single-page dossier with BrainGate header, target SMILES, timestamp, prediction classification and confidence badges, full 7 RDKit descriptor CNS MPO guideline table, SHAP chemical rationale callout, multi-property (Tox21 / ESOL) candidate scorecard, and pre-clinical disclaimer footer.
+- Updated `backend/app/schemas.py`: Added `PDFReportRequest` schema accepting `smiles`, optional `molecule_name`, and optional precomputed `scorecard` to avoid redundant ML/SHAP inference on UI exports.
+- Updated `backend/app/main.py`: Registered `POST /report/pdf` endpoint returning `Content-Type: application/pdf` with dynamic fallback computation for standalone CLI/cURL usage.
+- Created `backend/scripts/test_pdf_report.py`: Automated test suite generating valid PDFs for Caffeine, Diazepam, and Atenolol and rendering high-resolution PNG page snapshots for visual verification.
+- Updated `frontend/lib/api.ts`: Added `downloadPdfReport` and `savePdfBlob` download helper functions.
+- Updated `frontend/components/PredictionCard.tsx`: Added "PDF Report" button with loading spinner state in the card actions bar.
+- Updated `frontend/components/ScorecardView.tsx`: Added "Generate PDF Report" export button in the multi-property scorecard header banner.
+- Updated `frontend/app/page.tsx`: Connected PDF generation state, trigger handlers, and inline error alert.
+- Updated `backend/requirements.txt`: Added `reportlab`, `matplotlib`, and `pillow`.
+
+### Fixed - Scientific Assistant Markdown & Table Formatting
+- Rebuilt Markdown parser in `frontend/components/ScientificAssistantPanel.tsx` to fully support Markdown tables (`| ... |`), section headings (`###`), blockquotes, ordered/unordered lists, code blocks, italics (`*...*` and `_..._`), and bold terms.
+- Added table row normalization to handle collapsed `||` pipe delimiters gracefully.
+- Added `.no-scrollbar` utility in `frontend/app/globals.css` to eliminate horizontal scrollbars on the preset action ribbon.
+- Updated `backend/app/ai_assistant.py` system prompts to guide LLMs toward clean Markdown tables and scannable bullet points.
+
 ### Added - Molecular Modification Simulator (Level 1: Descriptor Optimization)
 - Created `backend/app/molecular_optimizer.py`: Automated medicinal chemistry optimization engine that identifies negative SHAP limiting factors and generates diversified candidate profiles (Targeted Polar Capping, CNS MPO Polarity Derisking, Lipophilicity & Rigidity Balancing, Multi-Parameter Lead, Scaffold Rigidification, Compact Fragment Analog). Re-evaluates each candidate through the real trained XGBoost model (`xgb_bbbp_model.pkl`), computes descriptor deltas and probability shifts, and ranks candidates descending by predicted BBB permeability.
 - Updated `backend/app/schemas.py`: Added `CandidateDescriptorDelta`, `OptimizedCandidate`, `OptimizeRequest`, and `OptimizeResponse` with safety and computational disclaimer notices.

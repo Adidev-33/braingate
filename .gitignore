@@ -33,8 +33,9 @@ Thumbs.db
 .idea/
 *.swp
 
-# Log files
+# Log & test files
 *.log
+backend/test_output/
 
 # Environment variables & secrets
 .env

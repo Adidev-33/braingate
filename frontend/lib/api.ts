@@ -148,6 +148,55 @@ export async function predictScorecard(smiles: string): Promise<ScorecardRespons
   return data as ScorecardResponse;
 }
 
+export async function downloadPdfReport(
+  smiles: string,
+  scorecard?: ScorecardResponse | null,
+  moleculeName?: string
+): Promise<Blob> {
+  const payload: { smiles: string; molecule_name?: string; scorecard?: ScorecardResponse } = {
+    smiles,
+    molecule_name: moleculeName
+  };
+  if (scorecard) {
+    payload.scorecard = scorecard;
+  }
+
+  const res = await fetch(`${API_BASE_URL}/report/pdf`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    let errorMsg = "Failed to generate PDF report from server.";
+    try {
+      const errJson = await res.json();
+      if (errJson.error || errJson.detail) {
+        errorMsg = errJson.error || errJson.detail;
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
+  }
+
+  return await res.blob();
+}
+
+export function savePdfBlob(blob: Blob, filename: string = "braingate_report.pdf") {
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.style.display = "none";
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }, 100);
+}
+
 export async function compareSmiles(smiles1: string, smiles2: string): Promise<CompareResponse> {
   const res = await fetch(`${API_BASE_URL}/compare`, {
     method: "POST",

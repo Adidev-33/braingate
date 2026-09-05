@@ -7,9 +7,11 @@ import FeaturesTable from "@/components/FeaturesTable";
 
 interface Props {
   scorecard: ScorecardResponse;
+  onDownloadPdf?: () => void;
+  isDownloadingPdf?: boolean;
 }
 
-export default function ScorecardView({ scorecard }: Props) {
+export default function ScorecardView({ scorecard, onDownloadPdf, isDownloadingPdf }: Props) {
   const { bbb, toxicity, solubility, overall_verdict, features } = scorecard;
   const isPermeable = bbb.prediction === "permeable";
   const isSafe = toxicity.prediction === "non_toxic";
@@ -64,10 +66,33 @@ export default function ScorecardView({ scorecard }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 bg-surface-container-lowest px-4 py-2 rounded-xl border border-slate-200">
-            <div className="text-right font-mono">
-              <div className="text-[10px] text-on-surface-variant uppercase">Screener engines</div>
-              <div className="text-xs font-bold text-primary">BBBP • Tox21 • ESOL</div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            {onDownloadPdf && (
+              <button
+                type="button"
+                id="btn-scorecard-pdf-export"
+                onClick={onDownloadPdf}
+                disabled={isDownloadingPdf}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-surface-container-lowest hover:bg-slate-100 text-slate-800 border border-slate-300 hover:border-slate-400 transition-all shadow-sm group disabled:opacity-50"
+              >
+                {isDownloadingPdf ? (
+                  <span className="material-symbols-outlined text-[18px] animate-spin text-primary">
+                    sync
+                  </span>
+                ) : (
+                  <span className="material-symbols-outlined text-[18px] text-red-600 group-hover:scale-110 transition-transform">
+                    picture_as_pdf
+                  </span>
+                )}
+                <span>{isDownloadingPdf ? "Generating..." : "Generate PDF Report"}</span>
+              </button>
+            )}
+
+            <div className="flex items-center gap-2 bg-surface-container-lowest px-4 py-2 rounded-xl border border-slate-200">
+              <div className="text-right font-mono">
+                <div className="text-[10px] text-on-surface-variant uppercase">Screener engines</div>
+                <div className="text-xs font-bold text-primary">BBBP • Tox21 • ESOL</div>
+              </div>
             </div>
           </div>
         </div>

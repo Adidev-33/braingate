@@ -1,7 +1,7 @@
 import os
 import sys
-from typing import List
-from fastapi import FastAPI, HTTPException, status
+from typing import List, Optional
+from fastapi import FastAPI, HTTPException, status, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -17,6 +17,7 @@ from backend.app.explain_stretch import Tox21Explainer, ESOLExplainer
 from backend.app.what_if import run_what_if_simulation, generate_response_curve
 from backend.app.ai_assistant import generate_assistant_response
 from backend.app.molecular_optimizer import optimize_descriptors
+from backend.app.pdf_generator import generate_pdf_report
 from backend.app.schemas import (
     HealthResponse,
     ExampleMolecule,
@@ -35,7 +36,8 @@ from backend.app.schemas import (
     AssistantRequest,
     AssistantResponse,
     OptimizeRequest,
-    OptimizeResponse
+    OptimizeResponse,
+    PDFReportRequest
 )
 
 app = FastAPI(
@@ -360,6 +362,122 @@ def generate_scorecard_verdict(bbb: dict, tox: dict, esol: dict) -> str:
         return "CNS Active with Solubility Risk: Permeable into the brain, but poor aqueous solubility may cause dissolution or formulation challenges."
     else:
         return f"Mixed Screening Profile: BBB {'permeable' if is_perm else 'restricted'}, {tox['prediction']} risk, {tier.lower()} aqueous solubility."
+
+
+@app.post(
+    "/report/pdf",
+    responses={
+        200: {
+            "content": {"application/pdf": {}},
+            "description": "Returns raw binary PDF report file."
+        },
+        422: {"model": InvalidSmilesResponse}
+    },
+    tags=["Reporting"]
+)
+def export_pdf_report(request: PDFReportRequest):
+    """
+    Generates a publication-grade PDF summary report for a given SMILES string.
+    Includes prediction verdict, confidence, computed descriptors, static SHAP bar chart,
+    CNS MPO compliance table, and multi-property (Tox21 / ESOL) candidate scorecard.
+    """
+    smiles_input = request.smiles.strip() if request.smiles else ""
+
+    # If full precomputed scorecard provided, use its data directly
+    if request.scorecard is not None and request.scorecard.valid_smiles:
+        scorecard_dict = request.scorecard.dict()
+    else:
+        # Otherwise compute descriptors & multi-property scorecard dynamically
+        feature_dict = compute_descriptors(smiles_input)
+        if feature_dict is None:
+            return JSONResponse(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                content={
+                    "valid_smiles": False,
+                    "error": f"Could not parse SMILES string '{smiles_input}'. Please enter a valid chemical structure."
+                }
+            )
+
+        bbb_model = BBBModel()
+        bbb_pred = bbb_model.predict(feature_dict)
+        bbb_explainer = SHAPExplainer()
+        bbb_shap = bbb_explainer.explain(feature_dict)
+        bbb_res = {
+            "valid_smiles": True,
+            "prediction": bbb_pred["prediction"],
+            "confidence": bbb_pred["confidence"],
+            "permeable_probability": bbb_pred["permeable_probability"],
+            "features": feature_dict,
+            "shap_explanation": bbb_shap["shap_explanation"],
+            "summary_sentence": bbb_shap["summary_sentence"]
+        }
+
+        tox_model = Tox21Model()
+        tox_pred = tox_model.predict(feature_dict)
+        tox_explainer = Tox21Explainer()
+        tox_shap = tox_explainer.explain(feature_dict)
+        tox_res = {
+            "valid_smiles": True,
+            "prediction": tox_pred["prediction"],
+            "confidence": tox_pred["confidence"],
+            "toxic_probability": tox_pred["toxic_probability"],
+            "features": feature_dict,
+            "shap_explanation": tox_shap["shap_explanation"],
+            "summary_sentence": tox_shap["summary_sentence"]
+        }
+
+        esol_model = ESOLModel()
+        esol_pred = esol_model.predict(feature_dict)
+        esol_explainer = ESOLExplainer()
+        esol_shap = esol_explainer.explain(feature_dict)
+        esol_res = {
+            "valid_smiles": True,
+            "log_solubility": esol_pred["log_solubility"],
+            "solubility_tier": esol_pred["solubility_tier"],
+            "tier_description": esol_pred["tier_description"],
+            "unit": esol_pred["unit"],
+            "features": feature_dict,
+            "shap_explanation": esol_shap["shap_explanation"],
+            "summary_sentence": esol_shap["summary_sentence"]
+        }
+
+        verdict = generate_scorecard_verdict(bbb_pred, tox_pred, esol_pred)
+        scorecard_dict = {
+            "valid_smiles": True,
+            "smiles": smiles_input,
+            "features": feature_dict,
+            "bbb": bbb_res,
+            "toxicity": tox_res,
+            "solubility": esol_res,
+            "overall_verdict": verdict
+        }
+
+    try:
+        pdf_bytes = generate_pdf_report(
+            smiles=smiles_input,
+            scorecard=scorecard_dict,
+            molecule_name=request.molecule_name
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate PDF report: {str(e)}"
+        )
+
+    # Sanitize molecule filename
+    clean_name = "".join(c for c in (request.molecule_name or smiles_input[:16]) if c.isalnum() or c in ("-", "_")).strip()
+    if not clean_name:
+        clean_name = "molecule"
+    filename = f"braingate_report_{clean_name}.pdf"
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Access-Control-Expose-Headers": "Content-Disposition"
+        }
+    )
 
 
 @app.post(

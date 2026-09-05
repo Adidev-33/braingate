@@ -16,6 +16,8 @@ import ScientificAssistantPanel from "@/components/ScientificAssistantPanel";
 import MolecularOptimizer from "@/components/MolecularOptimizer";
 import {
   predictScorecard,
+  downloadPdfReport,
+  savePdfBlob,
   ScorecardResponse,
   PredictResponse,
   ToxPredictResponse,
@@ -31,6 +33,8 @@ export default function Home() {
   const [scorecard, setScorecard] = useState<ScorecardResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
   const [showAssistantDrawer, setShowAssistantDrawer] = useState<boolean>(false);
   const [assistantInitialQuestion, setAssistantInitialQuestion] = useState<string | undefined>(undefined);
   const [assistantComparisonData, setAssistantComparisonData] = useState<any | undefined>(undefined);
@@ -49,6 +53,7 @@ export default function Home() {
   const handlePredict = async (smilesInput: string) => {
     setLoading(true);
     setError(null);
+    setPdfError(null);
     try {
       // Calls unified scorecard endpoint which computes BBB, Tox21, and ESOL in one pass
       const data = await predictScorecard(smilesInput);
@@ -58,6 +63,21 @@ export default function Home() {
       setScorecard(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGeneratePdf = async () => {
+    if (!scorecard || !smiles) return;
+    setIsGeneratingPdf(true);
+    setPdfError(null);
+    try {
+      const blob = await downloadPdfReport(smiles, scorecard);
+      const cleanName = smiles.slice(0, 12).replace(/[^a-zA-Z0-9]/g, "");
+      savePdfBlob(blob, `braingate_report_${cleanName || "molecule"}.pdf`);
+    } catch (err: any) {
+      setPdfError(err.message || "Failed to generate PDF report from server. Please verify backend connection.");
+    } finally {
+      setIsGeneratingPdf(false);
     }
   };
 
@@ -358,7 +378,11 @@ export default function Home() {
                   )}
 
                   {!loading && !error && scorecard && (
-                    <ScorecardView scorecard={scorecard} />
+                    <ScorecardView
+                      scorecard={scorecard}
+                      onDownloadPdf={handleGeneratePdf}
+                      isDownloadingPdf={isGeneratingPdf}
+                    />
                   )}
                 </div>
               ) : (
@@ -407,6 +431,23 @@ export default function Home() {
                       loading={loading}
                       liveFeatures={scorecard?.features}
                     />
+
+                    {/* PDF Generation Error Inline Banner */}
+                    {pdfError && (
+                      <div className="bg-error-container/40 border border-error/40 text-on-error-container p-4 rounded-xl flex items-center justify-between gap-3 text-xs font-mono animate-in fade-in duration-200">
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-error text-[18px]">error</span>
+                          <span>{pdfError}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setPdfError(null)}
+                          className="hover:opacity-75 text-on-error-container font-bold uppercase text-[10px]"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    )}
 
                     {/* Computed RDKit Descriptors vs CNS MPO Rules on the Left Side */}
                     {!loading && !error && scorecard && (
@@ -459,6 +500,8 @@ export default function Home() {
                               onOpenOptimizer={() => setPropertyTab("optimizer")}
                               onOpenSimulator={() => setPropertyTab("what-if")}
                               onOpenAssistant={() => handleOpenAssistantWithContext()}
+                              onDownloadPdf={handleGeneratePdf}
+                              isDownloadingPdf={isGeneratingPdf}
                             />
                             <ShapBarChart shapData={bbbResult.shap_explanation} />
                           </>

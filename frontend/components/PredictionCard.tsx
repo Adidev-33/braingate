@@ -8,9 +8,18 @@ interface Props {
   onOpenSimulator?: () => void;
   onOpenAssistant?: () => void;
   onOpenOptimizer?: () => void;
+  onDownloadPdf?: () => void;
+  isDownloadingPdf?: boolean;
 }
 
-export default function PredictionCard({ result, onOpenSimulator, onOpenAssistant, onOpenOptimizer }: Props) {
+export default function PredictionCard({
+  result,
+  onOpenSimulator,
+  onOpenAssistant,
+  onOpenOptimizer,
+  onDownloadPdf,
+  isDownloadingPdf
+}: Props) {
   const isPermeable = result.prediction === "permeable";
   const confidencePct = Math.round(result.confidence * 100);
   const strokeDashoffset = 264 - (264 * confidencePct) / 100;
@@ -197,6 +206,28 @@ export default function PredictionCard({ result, onOpenSimulator, onOpenAssistan
               smart_toy
             </span>
             <span>Assistant</span>
+          </button>
+        )}
+
+        {onDownloadPdf && (
+          <button
+            type="button"
+            id="btn-generate-pdf-report"
+            onClick={onDownloadPdf}
+            disabled={isDownloadingPdf}
+            className="flex-1 w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-slate-300 hover:border-slate-400 transition-all shadow-sm group disabled:opacity-50"
+            title="Download publication-grade PDF report summary"
+          >
+            {isDownloadingPdf ? (
+              <span className="material-symbols-outlined text-[16px] animate-spin text-primary">
+                sync
+              </span>
+            ) : (
+              <span className="material-symbols-outlined text-[16px] text-red-600 group-hover:scale-110 transition-transform">
+                picture_as_pdf
+              </span>
+            )}
+            <span>{isDownloadingPdf ? "Generating..." : "PDF Report"}</span>
           </button>
         )}
       </div>

@@ -33,7 +33,7 @@
 - [x] Prepare positioning vs. prior art (SwissADME, pkCSM).
 - [x] Prepare 2–3 backup example molecules with pre-verified predictions.
 
-## Stretch Goal — Multi-Property Screener [IN PROGRESS]
+## Stretch Goal — Multi-Property Screener [100% COMPLETE]
 - [x] **Sub-phase A — Data & Models:**
   - [x] Download & clean Tox21 and ESOL datasets via DeepChem MoleculeNet (`backend/scripts/data_prep_stretch.py`).
   - [x] Featurize both datasets using standardized 7 RDKit descriptors (`FEATURE_NAMES`).
@@ -48,8 +48,15 @@
   - [x] Add combined `POST /predict/scorecard` with all 3 properties and synthesized executive verdict.
   - [x] Update `/examples` to include known toxicity and solubility annotations.
   - [x] Verify endpoints with automated test calls (`backend/scripts/test_api.py`).
-- [ ] **Sub-phase C — Frontend Tabs:**
-  - [ ] Add tabs: "BBB Permeability" (default), "Toxicity", "Solubility", "Full Scorecard".
-  - [ ] Wire single-property tabs to `/predict/toxicity` and `/predict/solubility`.
-  - [ ] Wire "Full Scorecard" tab to `/predict/scorecard`.
-  - [ ] Preserve core BBB and comparison mode functionality.
+- [x] **Sub-phase C — Frontend Tabs:**
+  - [x] Add tabs: "BBB Permeability" (default), "Toxicity", "Solubility", "Full Scorecard".
+  - [x] Wire single-property tabs to `/predict/toxicity` and `/predict/solubility`.
+  - [x] Wire "Full Scorecard" tab to `/predict/scorecard`.
+  - [x] Preserve core BBB and comparison mode functionality.
+
+## PDF Report Generation [100% COMPLETE]
+- [x] Implemented `backend/app/pdf_generator.py` with ReportLab and Matplotlib for static SHAP charts, CNS MPO comparison table, multi-property scorecard, and headers/footers.
+- [x] Added `POST /report/pdf` in FastAPI with dynamic computation and scorecard passthrough.
+- [x] Added "PDF Report" and "Generate PDF Report" buttons on `PredictionCard` and `ScorecardView`.
+- [x] Added browser blob download trigger with inline error notifications in Next.js frontend.
+- [x] Automated test script and visual PNG snapshot verification (`backend/scripts/test_pdf_report.py`).

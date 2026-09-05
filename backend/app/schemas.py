@@ -205,4 +205,10 @@ class OptimizeResponse(BaseModel):
     )
 
 
+class PDFReportRequest(BaseModel):
+    smiles: str = Field(..., example="CN1C=NC2=C1C(=O)N(C(=O)N2C)C", description="SMILES chemical structure")
+    molecule_name: Optional[str] = Field(None, example="Caffeine", description="Optional molecule common name")
+    scorecard: Optional[ScorecardResponse] = Field(None, description="Optional pre-computed full scorecard to prevent re-computation")
+
+
 

@@ -304,6 +304,26 @@ Side-by-side comparative analysis of two candidate molecules.
 
 ---
 
+### `POST /report/pdf`
+Generates a publication-grade, print-friendly PDF candidate summary dossier including prediction classification, confidence, 7 computed RDKit descriptors with CNS MPO compliance status, embedded static SHAP horizontal bar chart, multi-property scorecard (Tox21 & ESOL), and executive verdict.
+- **Request Body**:
+  ```json
+  {
+    "smiles": "CN1C=NC2=C1C(=O)N(C(=O)N2C)C",
+    "molecule_name": "Caffeine"
+  }
+  ```
+- **Response**: Binary stream (`Content-Type: application/pdf`, `Content-Disposition: attachment; filename="braingate_report_Caffeine.pdf"`).
+- **CLI/cURL Test Command**:
+  ```bash
+  curl -X POST "http://localhost:8000/report/pdf" \
+    -H "Content-Type: application/json" \
+    -d "{\"smiles\": \"CN1C=NC2=C1C(=O)N(C(=O)N2C)C\", \"molecule_name\": \"Caffeine\"}" \
+    --output braingate_report_Caffeine.pdf
+  ```
+
+---
+
 ## 6. Model Performance & Scientific Validation
 
 ### Test Set Evaluation Metrics (Held-Out Test Set):
