@@ -35,3 +35,10 @@ Thumbs.db
 
 # Log files
 *.log
+
+# Environment variables & secrets
+.env
+*.env
+backend/.env
+!.env.example
+!backend/.env.example

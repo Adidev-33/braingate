@@ -86,3 +86,77 @@ class CompareResponse(BaseModel):
     molecule1: Dict[str, Any] = Field(..., description="Full prediction object for molecule 1")
     molecule2: Dict[str, Any] = Field(..., description="Full prediction object for molecule 2")
     deciding_difference: str = Field(..., example="Molecule 1 crosses the BBB, whereas Molecule 2 is restricted due to higher polarity.")
+
+
+class WhatIfRequest(BaseModel):
+    smiles: Optional[str] = Field(None, example="NCCc1ccc(O)c(O)c1", description="Original SMILES string")
+    original_features: Optional[Dict[str, float]] = Field(None, description="Pre-computed original descriptor dictionary if available")
+    modified_descriptors: Dict[str, float] = Field(..., description="Dictionary of modified/overridden descriptor values", example={"tpsa": 45.0, "h_donors": 1})
+
+
+class WhatIfResponse(BaseModel):
+    valid_input: bool = Field(True, example=True)
+    original_probability: float = Field(..., example=0.141, description="Original BBB permeability probability (0.0 to 1.0)")
+    new_probability: float = Field(..., example=0.785, description="Simulated BBB permeability probability (0.0 to 1.0)")
+    delta_probability: float = Field(..., example=0.644, description="Raw change in probability (new - original)")
+    delta_percentage_points: float = Field(..., example=64.4, description="Percentage points delta (e.g. +64.4% or -12.3%)")
+    original_prediction: str = Field(..., example="non_permeable", description="'permeable' or 'non_permeable'")
+    new_prediction: str = Field(..., example="permeable", description="'permeable' or 'non_permeable'")
+    original_confidence: float = Field(..., example=0.859, description="Original prediction confidence")
+    new_confidence: float = Field(..., example=0.785, description="Simulated prediction confidence")
+    original_descriptors: Dict[str, float] = Field(..., description="Full baseline descriptor vector")
+    modified_descriptors: Dict[str, float] = Field(..., description="Full modified descriptor vector fed to the model")
+    disclaimer: str = Field("Computational prediction based on machine learning model; not an experimental assay result.", example="Computational prediction based on machine learning model; not an experimental assay result.")
+
+
+class WhatIfCurvePoint(BaseModel):
+    feature_value: float = Field(..., example=60.0)
+    permeable_probability: float = Field(..., example=0.82)
+    prediction: str = Field(..., example="permeable")
+
+
+class WhatIfCurveRequest(BaseModel):
+    base_descriptors: Dict[str, float] = Field(..., description="Baseline/current descriptor vector")
+    target_feature: str = Field(..., example="tpsa", description="Descriptor to vary along the x-axis")
+    min_val: Optional[float] = Field(None, example=0.0, description="Minimum descriptor range value")
+    max_val: Optional[float] = Field(None, example=200.0, description="Maximum descriptor range value")
+    num_points: Optional[int] = Field(25, example=25, description="Number of simulation steps")
+
+
+class WhatIfCurveResponse(BaseModel):
+    target_feature: str = Field(..., example="tpsa")
+    curve_points: List[WhatIfCurvePoint] = Field(..., description="List of simulated response points along the descriptor curve")
+    disclaimer: str = Field("Computational prediction based on machine learning model; not an experimental assay result.", example="Computational prediction based on machine learning model; not an experimental assay result.")
+
+
+class ChatMessage(BaseModel):
+    role: str = Field(..., example="user", description="'user' | 'assistant'")
+    content: str = Field(..., example="Why is permeability predicted to be low?")
+
+
+class AssistantContext(BaseModel):
+    smiles: str = Field(..., example="NCCc1ccc(O)c(O)c1", description="Current molecule SMILES string")
+    molecule_name: Optional[str] = Field(None, example="Dopamine", description="Molecule name if known")
+    prediction: str = Field(..., example="non_permeable", description="'permeable' | 'non_permeable'")
+    permeable_probability: float = Field(..., example=0.141, description="Model permeable probability (0.0 to 1.0)")
+    confidence: float = Field(..., example=0.859, description="Model confidence score")
+    features: Dict[str, float] = Field(..., description="Computed 7 RDKit descriptors")
+    shap_explanation: Optional[List[ShapItem]] = Field(None, description="SHAP feature attributions")
+    summary_sentence: Optional[str] = Field(None, description="Executive plain-text chemical summary")
+    what_if_data: Optional[Dict[str, Any]] = Field(None, description="Optional What-If simulation parameters and deltas")
+    comparison_data: Optional[Dict[str, Any]] = Field(None, description="Optional analog comparison data")
+
+
+class AssistantRequest(BaseModel):
+    question: str = Field(..., example="Why did this molecule fail BBB criteria?", description="User query or preset action prompt")
+    context: AssistantContext = Field(..., description="Structured prediction and SHAP context")
+    history: Optional[List[ChatMessage]] = Field(None, description="Optional previous conversation history for multi-turn chat")
+
+
+class AssistantResponse(BaseModel):
+    answer: str = Field(..., description="Grounded scientific explanation from BrainGate Assistant")
+    disclaimer: str = Field("Computational prediction based on machine learning model; not an experimental or clinical result.", example="Computational prediction based on machine learning model; not an experimental or clinical result.")
+    model_used: Optional[str] = Field(None, example="groq/openai/gpt-oss-120b", description="Identifier of the model engine that produced the response")
+    suggested_followups: Optional[List[str]] = Field(None, description="Suggested follow-up scientific questions")
+
+

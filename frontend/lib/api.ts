@@ -161,3 +161,119 @@ export async function compareSmiles(smiles1: string, smiles2: string): Promise<C
   }
   return data as CompareResponse;
 }
+
+export interface WhatIfRequest {
+  smiles?: string;
+  original_features?: Partial<FeatureDict>;
+  modified_descriptors: Partial<FeatureDict>;
+}
+
+export interface WhatIfResponse {
+  valid_input: boolean;
+  original_probability: number;
+  new_probability: number;
+  delta_probability: number;
+  delta_percentage_points: number;
+  original_prediction: "permeable" | "non_permeable";
+  new_prediction: "permeable" | "non_permeable";
+  original_confidence: number;
+  new_confidence: number;
+  original_descriptors: FeatureDict;
+  modified_descriptors: FeatureDict;
+  disclaimer: string;
+}
+
+export interface WhatIfCurvePoint {
+  feature_value: number;
+  permeable_probability: number;
+  prediction: "permeable" | "non_permeable";
+}
+
+export interface WhatIfCurveRequest {
+  base_descriptors: FeatureDict;
+  target_feature: keyof FeatureDict;
+  min_val?: number;
+  max_val?: number;
+  num_points?: number;
+}
+
+export interface WhatIfCurveResponse {
+  target_feature: string;
+  curve_points: WhatIfCurvePoint[];
+  disclaimer: string;
+}
+
+export async function simulateWhatIf(request: WhatIfRequest): Promise<WhatIfResponse> {
+  const res = await fetch(`${API_BASE_URL}/what-if`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request)
+  });
+
+  const data = await res.json();
+  if (!res.ok || data.valid_input === false) {
+    throw new Error(data.error || "What-if simulation failed.");
+  }
+  return data as WhatIfResponse;
+}
+
+export async function fetchWhatIfCurve(request: WhatIfCurveRequest): Promise<WhatIfCurveResponse> {
+  const res = await fetch(`${API_BASE_URL}/what-if/curve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request)
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to generate sensitivity curve.");
+  }
+  return data as WhatIfCurveResponse;
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface AssistantContext {
+  smiles: string;
+  molecule_name?: string;
+  prediction: "permeable" | "non_permeable";
+  permeable_probability: number;
+  confidence: number;
+  features: FeatureDict;
+  shap_explanation?: ShapItem[];
+  summary_sentence?: string;
+  what_if_data?: any;
+  comparison_data?: any;
+}
+
+export interface AssistantRequest {
+  question: string;
+  context: AssistantContext;
+  history?: ChatMessage[];
+}
+
+export interface AssistantResponse {
+  answer: string;
+  disclaimer: string;
+  model_used?: string;
+  suggested_followups?: string[];
+}
+
+export async function askAssistant(request: AssistantRequest): Promise<AssistantResponse> {
+  const res = await fetch(`${API_BASE_URL}/assistant`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request)
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to consult BrainGate Scientific Assistant.");
+  }
+  return data as AssistantResponse;
+}
+
+

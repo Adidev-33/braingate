@@ -14,6 +14,8 @@ from backend.app.model import BBBModel
 from backend.app.explain import SHAPExplainer
 from backend.app.model_stretch import Tox21Model, ESOLModel
 from backend.app.explain_stretch import Tox21Explainer, ESOLExplainer
+from backend.app.what_if import run_what_if_simulation, generate_response_curve
+from backend.app.ai_assistant import generate_assistant_response
 from backend.app.schemas import (
     HealthResponse,
     ExampleMolecule,
@@ -24,7 +26,13 @@ from backend.app.schemas import (
     ScorecardResponse,
     InvalidSmilesResponse,
     CompareRequest,
-    CompareResponse
+    CompareResponse,
+    WhatIfRequest,
+    WhatIfResponse,
+    WhatIfCurveRequest,
+    WhatIfCurveResponse,
+    AssistantRequest,
+    AssistantResponse
 )
 
 app = FastAPI(
@@ -435,3 +443,92 @@ def generate_deciding_difference(f1: dict, f2: dict, res1: dict, res2: dict) -> 
             return f"Deciding difference: Divergence driven by lipophilicity (LogP diff = {logp_diff}) and hydrogen bonding capacity."
     else:
         return f"Both molecules share the same prediction ({p1}). Structural variance: TPSA diff = {tpsa_diff} Å², MW diff = {mw_diff} Da."
+
+
+@app.post(
+    "/what-if",
+    response_model=WhatIfResponse,
+    responses={422: {"model": InvalidSmilesResponse}},
+    tags=["What-If Simulator"]
+)
+def what_if_simulation(request: WhatIfRequest):
+    """
+    Evaluates modified descriptor parameters against the real trained XGBoost BBB model.
+    Returns original probability, simulated probability, delta, predictions, and modified descriptors.
+    """
+    try:
+        res = run_what_if_simulation(
+            smiles=request.smiles,
+            original_features=request.original_features,
+            modified_descriptors=request.modified_descriptors
+        )
+        return WhatIfResponse(**res)
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={"valid_smiles": False, "error": str(e)}
+        )
+
+
+@app.post(
+    "/what-if/curve",
+    response_model=WhatIfCurveResponse,
+    responses={422: {"model": InvalidSmilesResponse}},
+    tags=["What-If Simulator"]
+)
+def what_if_curve(request: WhatIfCurveRequest):
+    """
+    Generates real model response curve data for a single descriptor varied across its range
+    while keeping other descriptors fixed.
+    """
+    try:
+        curve_points = generate_response_curve(
+            base_descriptors=request.base_descriptors,
+            target_feature=request.target_feature,
+            min_val=request.min_val,
+            max_val=request.max_val,
+            num_points=request.num_points or 25
+        )
+        return WhatIfCurveResponse(
+            target_feature=request.target_feature,
+            curve_points=curve_points,
+            disclaimer="Computational prediction based on machine learning model; not an experimental assay result."
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={"valid_smiles": False, "error": str(e)}
+        )
+
+
+@app.post(
+    "/assistant",
+    response_model=AssistantResponse,
+    tags=["Scientific Assistant"]
+)
+def scientific_assistant(request: AssistantRequest):
+    """
+    BrainGate Scientific Assistant: Groq LLM-powered domain consultant answering questions
+    grounded in structured RDKit descriptors, XGBoost predictions, SHAP attributions, and What-if modifications.
+    """
+    try:
+        context_dict = request.context.dict()
+        history_list = [h.dict() for h in request.history] if request.history else None
+        res = generate_assistant_response(
+            question=request.question,
+            context=context_dict,
+            history=history_list
+        )
+        return AssistantResponse(
+            answer=res["answer"],
+            disclaimer=res.get("disclaimer", "Computational prediction based on machine learning model; not an experimental or clinical result."),
+            model_used=res.get("model_used"),
+            suggested_followups=res.get("suggested_followups")
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"error": f"Failed to generate assistant response: {str(e)}"}
+        )
+
+

@@ -11,6 +11,8 @@ import ShapBarChart from "@/components/ShapBarChart";
 import FeaturesTable from "@/components/FeaturesTable";
 import InvalidSmilesBanner from "@/components/InvalidSmilesBanner";
 import ComparisonView from "@/components/ComparisonView";
+import WhatIfSimulator from "@/components/WhatIfSimulator";
+import ScientificAssistantPanel from "@/components/ScientificAssistantPanel";
 import {
   predictScorecard,
   ScorecardResponse,
@@ -19,7 +21,7 @@ import {
   SolubilityPredictResponse
 } from "@/lib/api";
 
-type PropertyTab = "bbb" | "toxicity" | "solubility" | "scorecard";
+type PropertyTab = "bbb" | "toxicity" | "solubility" | "scorecard" | "what-if" | "assistant";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"predictor" | "compare" | "api">("predictor");
@@ -28,6 +30,7 @@ export default function Home() {
   const [scorecard, setScorecard] = useState<ScorecardResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAssistantDrawer, setShowAssistantDrawer] = useState<boolean>(false);
 
   // Run prediction for initial default Caffeine on mount
   useEffect(() => {
@@ -54,7 +57,7 @@ export default function Home() {
   const solResult: SolubilityPredictResponse | null = scorecard?.solubility || null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface-container-lowest text-on-surface font-sans">
+    <div className="min-h-screen flex flex-col bg-surface-container-lowest text-on-surface font-sans relative">
       <Header activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <main className="w-full pt-20 pb-16 min-h-screen">
@@ -78,6 +81,42 @@ export default function Home() {
                   >
                     <span className="material-symbols-outlined text-[16px]">psychology</span>
                     <span>BBB Permeability</span>
+                  </button>
+
+                  <button
+                    id="tab-what-if"
+                    onClick={() => setPropertyTab("what-if")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs font-semibold uppercase tracking-wider transition-all ${
+                      propertyTab === "what-if"
+                        ? "bg-gradient-to-r from-primary/20 via-tertiary/20 to-primary/20 text-primary shadow-sm border border-primary/50"
+                        : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[16px]">tune</span>
+                    <span className="flex items-center gap-1.5">
+                      <span>What-if Simulator</span>
+                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-primary/20 text-primary uppercase">
+                        Interactive
+                      </span>
+                    </span>
+                  </button>
+
+                  <button
+                    id="tab-assistant"
+                    onClick={() => setPropertyTab("assistant")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs font-semibold uppercase tracking-wider transition-all ${
+                      propertyTab === "assistant"
+                        ? "bg-gradient-to-r from-tertiary/20 via-primary/20 to-tertiary/20 text-tertiary shadow-sm border border-tertiary/50"
+                        : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[16px]">smart_toy</span>
+                    <span className="flex items-center gap-1.5">
+                      <span>Scientific Assistant</span>
+                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-tertiary/20 text-tertiary uppercase">
+                        AI
+                      </span>
+                    </span>
                   </button>
 
                   <button
@@ -120,14 +159,101 @@ export default function Home() {
                   </button>
                 </div>
 
+
                 <div className="hidden md:flex items-center gap-2 px-3 py-1 font-mono text-[11px] text-on-surface-variant">
                   <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
                   <span>Interactive Multi-Property Screener</span>
                 </div>
               </div>
 
-              {/* When in Full Scorecard Mode: Top Input Bar + Full Width Scorecard */}
-              {propertyTab === "scorecard" ? (
+              {/* What-If Simulator Dedicated Workspace View */}
+              {propertyTab === "what-if" ? (
+                <div className="flex flex-col gap-6">
+                  <SmilesInput
+                    smiles={smiles}
+                    setSmiles={setSmiles}
+                    onSubmit={handlePredict}
+                    loading={loading}
+                    liveFeatures={scorecard?.features}
+                  />
+
+                  {loading && (
+                    <div className="bg-surface-container rounded-xl p-12 text-center space-y-4 shadow-xl">
+                      <span className="material-symbols-outlined text-[36px] text-primary animate-spin">
+                        sync
+                      </span>
+                      <div className="space-y-1">
+                        <h3 className="text-base font-semibold text-on-surface">Loading Baseline Structure</h3>
+                        <p className="font-mono text-xs text-on-surface-variant">
+                          Initializing descriptor sliders from RDKit structure...
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {!loading && error && (
+                    <InvalidSmilesBanner
+                      error={error}
+                      onClear={() => {
+                        setError(null);
+                        setSmiles("");
+                      }}
+                    />
+                  )}
+
+                  {!loading && !error && bbbResult && (
+                    <WhatIfSimulator
+                      originalResult={bbbResult}
+                      smiles={smiles}
+                      onClose={() => setPropertyTab("bbb")}
+                    />
+                  )}
+                </div>
+              ) : propertyTab === "assistant" ? (
+                /* Dedicated Scientific Assistant Workspace View */
+                <div className="flex flex-col gap-6">
+                  <SmilesInput
+                    smiles={smiles}
+                    setSmiles={setSmiles}
+                    onSubmit={handlePredict}
+                    loading={loading}
+                    liveFeatures={scorecard?.features}
+                  />
+
+                  {loading && (
+                    <div className="bg-surface-container rounded-xl p-12 text-center space-y-4 shadow-xl">
+                      <span className="material-symbols-outlined text-[36px] text-primary animate-spin">
+                        sync
+                      </span>
+                      <div className="space-y-1">
+                        <h3 className="text-base font-semibold text-on-surface">Loading Context for Assistant</h3>
+                        <p className="font-mono text-xs text-on-surface-variant">
+                          Computing descriptors & SHAP attributions...
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {!loading && error && (
+                    <InvalidSmilesBanner
+                      error={error}
+                      onClear={() => {
+                        setError(null);
+                        setSmiles("");
+                      }}
+                    />
+                  )}
+
+                  {!loading && !error && bbbResult && (
+                    <ScientificAssistantPanel
+                      originalResult={bbbResult}
+                      smiles={smiles}
+                      onClose={() => setPropertyTab("bbb")}
+                    />
+                  )}
+                </div>
+              ) : propertyTab === "scorecard" ? (
+                /* When in Full Scorecard Mode: Top Input Bar + Full Width Scorecard */
                 <div className="flex flex-col gap-6">
                   <SmilesInput
                     smiles={smiles}
@@ -243,7 +369,11 @@ export default function Home() {
                       <>
                         {propertyTab === "bbb" && bbbResult && (
                           <>
-                            <PredictionCard result={bbbResult} />
+                            <PredictionCard
+                              result={bbbResult}
+                              onOpenSimulator={() => setPropertyTab("what-if")}
+                              onOpenAssistant={() => setShowAssistantDrawer(true)}
+                            />
                             <ShapBarChart shapData={bbbResult.shap_explanation} />
                             <FeaturesTable features={bbbResult.features} />
                           </>
@@ -274,6 +404,33 @@ export default function Home() {
         </div>
       </main>
 
+      {/* Floating Scientific Assistant Action Button */}
+      {bbbResult && (
+        <button
+          type="button"
+          id="btn-floating-assistant"
+          onClick={() => setShowAssistantDrawer((prev) => !prev)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-primary via-tertiary to-primary text-surface-container-lowest font-mono text-xs font-bold uppercase tracking-wider shadow-[0_4px_20px_rgba(78,222,163,0.4)] hover:opacity-90 active:scale-95 transition-all"
+        >
+          <span className="material-symbols-outlined text-[20px]">smart_toy</span>
+          <span>Scientific Assistant</span>
+          <span className="w-2 h-2 rounded-full bg-surface-container-lowest animate-pulse" />
+        </button>
+      )}
+
+      {/* SLIDE-OVER ASSISTANT DRAWER MODAL */}
+      {showAssistantDrawer && bbbResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-end p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-xl h-full flex flex-col animate-in slide-in-from-right duration-300">
+            <ScientificAssistantPanel
+              originalResult={bbbResult}
+              smiles={smiles}
+              onClose={() => setShowAssistantDrawer(false)}
+            />
+          </div>
+        </div>
+      )}
+
       <footer className="w-full bg-surface-container-low py-4 border-t border-slate-800 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-on-surface-variant">
           <div className="flex items-center gap-3">
@@ -293,3 +450,4 @@ export default function Home() {
     </div>
   );
 }
+

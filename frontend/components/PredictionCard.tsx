@@ -5,9 +5,11 @@ import { PredictResponse } from "@/lib/api";
 
 interface Props {
   result: PredictResponse;
+  onOpenSimulator?: () => void;
+  onOpenAssistant?: () => void;
 }
 
-export default function PredictionCard({ result }: Props) {
+export default function PredictionCard({ result, onOpenSimulator, onOpenAssistant }: Props) {
   const isPermeable = result.prediction === "permeable";
   const confidencePct = Math.round(result.confidence * 100);
   const strokeDashoffset = 264 - (264 * confidencePct) / 100;
@@ -152,6 +154,39 @@ export default function PredictionCard({ result }: Props) {
           "{result.summary_sentence}"
         </p>
       </div>
+
+      {/* Action Buttons: Simulator & Scientific Assistant */}
+      <div className="relative z-10 flex flex-col sm:flex-row items-center gap-2.5">
+        {onOpenSimulator && (
+          <button
+            type="button"
+            id="btn-open-what-if"
+            onClick={onOpenSimulator}
+            className="flex-1 w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-surface-container-high hover:bg-surface-container-highest text-primary border border-primary/40 hover:border-primary transition-all shadow-sm group"
+          >
+            <span className="material-symbols-outlined text-[17px] text-primary group-hover:rotate-12 transition-transform">
+              tune
+            </span>
+            <span>What-if Simulator</span>
+          </button>
+        )}
+
+        {onOpenAssistant && (
+          <button
+            type="button"
+            id="btn-open-assistant"
+            onClick={onOpenAssistant}
+            className="flex-1 w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-primary/20 via-tertiary/20 to-primary/20 hover:from-primary/30 hover:to-tertiary/30 text-tertiary border border-tertiary/40 hover:border-tertiary transition-all shadow-sm group"
+          >
+            <span className="material-symbols-outlined text-[17px] text-tertiary group-hover:scale-110 transition-transform">
+              smart_toy
+            </span>
+            <span>Ask Assistant</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }
+
+

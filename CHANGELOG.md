@@ -4,7 +4,26 @@ All notable changes to the BrainGate project will be documented in this file.
 
 ## [Unreleased]
 
-### Added - Stretch Goal Sub-phase B: Backend API Extension
+### Added - BrainGate Scientific Assistant (LLM Explanation Layer)
+- Created `backend/app/ai_assistant.py`: Decoupled explanation layer that ingests structured prediction contexts (SMILES, descriptors, probability, SHAP attributions, What-if simulations, candidate comparisons) without computing or altering model predictions. Includes strict epistemic prompts ("predicts a higher likelihood of" vs "will cross in reality"), handles missing context gracefully, and provides a domain-grounded medicinal chemistry reasoning engine as a zero-dependency fallback alongside Gemini/OpenAI API integrations.
+- Updated `backend/app/schemas.py`: Added `ChatMessage`, `AssistantContext`, `AssistantRequest`, and `AssistantResponse` with computational disclaimer notices.
+- Updated `backend/app/main.py`: Added `POST /assistant` endpoint.
+- Created `backend/scripts/test_assistant.py`: Comprehensive test suite verifying preset prompts ("Why low/high?", "Explain SHAP", "How to improve?", "Explain modification") and custom queries.
+- Created `frontend/components/ScientificAssistantPanel.tsx`: Interactive chat interface with preset quick-action buttons, active molecule context banner, markdown rendering, and always-visible computational disclaimer.
+- Updated `frontend/lib/api.ts`: Added TypeScript interfaces and `askAssistant` client function.
+- Updated `frontend/components/PredictionCard.tsx`: Added "Ask Assistant" action button.
+- Updated `frontend/app/page.tsx`: Added dedicated "Scientific Assistant" tab, slide-over drawer modal, and floating assistant button.
+
+### Added - What-if BBB Simulator Feature
+- Created `backend/app/what_if.py`: Isolated simulation engine that evaluates user-modified physicochemical descriptors against the existing trained XGBoost model (`xgb_bbbp_model.pkl`) with zero retraining and computes 20-point descriptor sensitivity curves.
+- Updated `backend/app/schemas.py`: Added `WhatIfRequest`, `WhatIfResponse`, `WhatIfCurvePoint`, `WhatIfCurveRequest`, and `WhatIfCurveResponse` with computational disclaimer notices.
+- Updated `backend/app/main.py`: Added `POST /what-if` and `POST /what-if/curve` endpoints.
+- Created `backend/scripts/test_what_if.py`: Automated test suite for What-if simulation and sensitivity curve generation across reference molecules.
+- Created `frontend/components/WhatIfSimulator.tsx`: Interactive Next.js component featuring 7 descriptor sliders with CNS MPO guideline reference badges, real-time baseline vs what-if probability cards with color-coded delta percentage shifts, SHAP optimization guidance notes, interactive Recharts sensitivity response curves with operating point pins, and "Apply as Candidate" pipeline export.
+- Updated `frontend/lib/api.ts`: Added TypeScript interfaces and client functions `simulateWhatIf` and `fetchWhatIfCurve`.
+- Updated `frontend/components/PredictionCard.tsx`: Added "Launch What-if BBB Simulator" trigger button.
+- Updated `frontend/app/page.tsx`: Integrated dedicated "What-if Simulator" tab and wired PredictionCard actions.
+
 - Updated `backend/app/schemas.py`: Added `ToxPredictResponse`, `SolubilityPredictResponse`, `ScorecardResponse`, and enhanced `ExampleMolecule` with optional `known_toxicity`, `known_solubility`, and `known_solubility_tier`.
 - Updated `backend/app/main.py`:
   - Added `POST /predict/toxicity`: Returns Tox21 toxicity prediction, probability, 7 SHAP attributions, and plain-language explanation.
