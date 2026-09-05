@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ExampleMoleculePicker from "./ExampleMoleculePicker";
 import { FeatureDict } from "@/lib/api";
 
@@ -12,6 +12,26 @@ interface Props {
   liveFeatures?: FeatureDict | null;
 }
 
+interface PubChemResult {
+  commonName: string | null;
+  iupacName: string | null;
+}
+
+// Calls PubChem PUG REST to resolve a SMILES string to a drug name.
+// Returns common name (Title) and IUPAC name if available.
+async function lookupDrugName(smiles: string): Promise<PubChemResult> {
+  const encoded = encodeURIComponent(smiles.trim());
+  const url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encoded}/property/IUPACName,Title/JSON`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+  if (!res.ok) return { commonName: null, iupacName: null };
+  const data = await res.json();
+  const props = data?.PropertyTable?.Properties?.[0];
+  return {
+    commonName: props?.Title ?? null,
+    iupacName: props?.IUPACName ?? null,
+  };
+}
+
 export default function SmilesInput({
   smiles,
   setSmiles,
@@ -19,6 +39,39 @@ export default function SmilesInput({
   loading,
   liveFeatures,
 }: Props) {
+  const [drugName, setDrugName] = useState<string | null>(null);
+  const [iupacName, setIupacName] = useState<string | null>(null);
+  const [nameLoading, setNameLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounced PubChem lookup: fires 800ms after user stops typing
+  useEffect(() => {
+    setDrugName(null);
+    setIupacName(null);
+
+    if (!smiles || smiles.trim().length < 4) return;
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(async () => {
+      setNameLoading(true);
+      try {
+        const result = await lookupDrugName(smiles);
+        setDrugName(result.commonName);
+        setIupacName(result.iupacName);
+      } catch {
+        setDrugName(null);
+        setIupacName(null);
+      } finally {
+        setNameLoading(false);
+      }
+    }, 800);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [smiles]);
+
   const handlePaste = async () => {
     try {
       const text = await navigator.clipboard.readText();
@@ -99,6 +152,38 @@ export default function SmilesInput({
             />
           </div>
 
+          {/* ── Drug Name Identification Banner ── */}
+          {(nameLoading || drugName || iupacName) && (
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-primary/8 border border-primary/20 text-sm transition-all">
+              <span className="material-symbols-outlined text-[18px] text-primary mt-0.5 shrink-0">
+                {nameLoading ? "progress_activity" : "science"}
+              </span>
+              {nameLoading ? (
+                <span className="text-on-surface-variant font-mono text-xs animate-pulse">
+                  Identifying molecule via PubChem…
+                </span>
+              ) : (
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  {drugName && (
+                    <span className="font-semibold text-on-surface text-sm">
+                      {drugName}
+                    </span>
+                  )}
+                  {iupacName && (
+                    <span className="font-mono text-[11px] text-on-surface-variant truncate" title={iupacName}>
+                      IUPAC: {iupacName}
+                    </span>
+                  )}
+                  {!drugName && !iupacName && (
+                    <span className="text-outline text-xs font-mono">
+                      No match found in PubChem — novel or uncommon structure
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Molecular Parameter Badges Preview Bar */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
             <div className="flex flex-col bg-surface-container-low border border-slate-200/80 p-2.5 rounded-lg">
@@ -154,7 +239,7 @@ export default function SmilesInput({
             {loading ? (
               <>
                 <span className="material-symbols-outlined text-[20px] animate-spin text-white">sync</span>
-                <span className="text-white">Calculating RDKit Descriptors & SHAP Inference...</span>
+                <span className="text-white">Calculating RDKit Descriptors &amp; SHAP Inference...</span>
               </>
             ) : (
               <>
