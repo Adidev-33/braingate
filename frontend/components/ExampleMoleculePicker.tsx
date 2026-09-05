@@ -58,10 +58,10 @@ export default function ExampleMoleculePicker({ onSelect, selectedSmiles, disabl
             <div
               key={mol.name}
               onClick={() => !disabled && onSelect(mol.smiles)}
-              className={`group relative bg-surface-container/80 hover:bg-surface-container-high transition-all p-4 rounded-xl cursor-pointer shadow-md flex flex-col justify-between gap-3 border ${
+              className={`group relative bg-surface-container hover:bg-surface-container-high transition-all p-4 rounded-xl cursor-pointer shadow-sm flex flex-col justify-between gap-3 border ${
                 isSelected
                   ? "border-primary bg-surface-container-high ring-1 ring-primary/40"
-                  : "border-slate-800 hover:border-slate-700"
+                  : "border-slate-200 hover:border-slate-300"
               } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <div className="flex items-start justify-between gap-2">
@@ -74,7 +74,7 @@ export default function ExampleMoleculePicker({ onSelect, selectedSmiles, disabl
                 <span
                   className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase shrink-0 ${
                     isPerm
-                      ? "bg-tertiary/15 text-tertiary shadow-[0_0_12px_rgba(78,222,163,0.2)]"
+                      ? "bg-tertiary/15 text-tertiary shadow-sm"
                       : "bg-error/15 text-error"
                   }`}
                 >
@@ -88,15 +88,15 @@ export default function ExampleMoleculePicker({ onSelect, selectedSmiles, disabl
                   <span
                     className={`font-mono text-[9px] uppercase px-1.5 py-0.5 rounded ${
                       mol.known_toxicity === "non_toxic"
-                        ? "bg-emerald-500/15 text-emerald-400"
-                        : "bg-amber-500/15 text-amber-400"
+                        ? "bg-emerald-500/15 text-emerald-600"
+                        : "bg-amber-500/15 text-amber-700"
                     }`}
                   >
                     {mol.known_toxicity === "non_toxic" ? "Clean Tox" : "Tox Flag"}
                   </span>
                 )}
                 {mol.known_solubility_tier && (
-                  <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-400">
+                  <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-700">
                     Sol: {mol.known_solubility_tier}
                   </span>
                 )}

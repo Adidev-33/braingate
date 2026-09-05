@@ -14,6 +14,7 @@ interface Props {
   moleculeName?: string;
   whatIfData?: any;
   comparisonData?: any;
+  initialQuestion?: string;
   onClose?: () => void;
 }
 
@@ -30,6 +31,7 @@ export default function ScientificAssistantPanel({
   moleculeName,
   whatIfData,
   comparisonData,
+  initialQuestion,
   onClose
 }: Props) {
   const activeName = moleculeName || (smiles && KNOWN_MOLECULES[smiles.trim()]) || "Candidate Molecule";
@@ -39,6 +41,8 @@ export default function ScientificAssistantPanel({
   const [error, setError] = useState<string | null>(null);
   const [activeWhatIf, setActiveWhatIf] = useState<any>(whatIfData || null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+  const inFlightRef = useRef<boolean>(false);
+  const lastDispatchedQuestionRef = useRef<string | null>(null);
 
   // Check localStorage for any What-If candidate data if not passed directly
   useEffect(() => {
@@ -59,7 +63,7 @@ export default function ScientificAssistantPanel({
     }
   }, [smiles, whatIfData]);
 
-  // Initial welcome message
+  // Initial welcome message (runs when molecule changes)
   useEffect(() => {
     const isPerm = originalResult.prediction === "permeable";
     const probPct = Math.round((originalResult.permeable_probability ?? 0) * 100);
@@ -71,7 +75,19 @@ export default function ScientificAssistantPanel({
         content: welcomeText
       }
     ]);
-  }, [smiles, activeName, originalResult]);
+  }, [smiles, activeName, originalResult.prediction, originalResult.permeable_probability]);
+
+  // Handle auto-dispatch of initialQuestion exactly once per question
+  useEffect(() => {
+    if (
+      initialQuestion &&
+      initialQuestion.trim() &&
+      lastDispatchedQuestionRef.current !== initialQuestion
+    ) {
+      lastDispatchedQuestionRef.current = initialQuestion;
+      handleSendQuestion(initialQuestion);
+    }
+  }, [initialQuestion]);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -81,9 +97,10 @@ export default function ScientificAssistantPanel({
   const [modelUsed, setModelUsed] = useState<string | null>(null);
 
   const handleSendQuestion = async (presetQuestion?: string) => {
-    const q = presetQuestion || inputQuestion;
-    if (!q.trim() || loading) return;
+    const q = (presetQuestion || inputQuestion).trim();
+    if (!q || inFlightRef.current) return;
 
+    inFlightRef.current = true;
     setError(null);
     setInputQuestion("");
 
@@ -130,6 +147,7 @@ export default function ScientificAssistantPanel({
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setLoading(false);
+      inFlightRef.current = false;
     }
   };
 
@@ -137,15 +155,15 @@ export default function ScientificAssistantPanel({
   const probPct = Math.round((originalResult.permeable_probability ?? 0) * 100);
 
   return (
-    <div className="bg-surface-container rounded-2xl border border-slate-700/90 shadow-2xl flex flex-col h-[680px] max-h-[85vh] w-full overflow-hidden relative">
+    <div className="bg-surface-container rounded-2xl border border-slate-200 shadow-xl flex flex-col h-[680px] max-h-[85vh] w-full overflow-hidden relative">
       {/* Background ambient lighting */}
-      <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-tertiary/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-tertiary/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header Bar */}
-      <div className="px-5 py-4 bg-surface-container-high border-b border-slate-800 flex items-center justify-between gap-3 relative z-10">
+      <div className="px-5 py-4 bg-surface-container-high border-b border-slate-200 flex items-center justify-between gap-3 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/30 to-tertiary/30 flex items-center justify-center text-primary border border-primary/40 shadow-inner">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/20 to-tertiary/20 flex items-center justify-center text-primary border border-primary/30 shadow-inner">
             <span className="material-symbols-outlined text-[20px]">smart_toy</span>
           </div>
           <div>
@@ -180,7 +198,7 @@ export default function ScientificAssistantPanel({
               ]);
             }}
             title="Reset Conversation"
-            className="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-all text-xs border border-slate-700"
+            className="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-all text-xs border border-slate-200"
           >
             <span className="material-symbols-outlined text-[16px]">restart_alt</span>
           </button>
@@ -190,7 +208,7 @@ export default function ScientificAssistantPanel({
               type="button"
               onClick={onClose}
               title="Close Assistant Panel"
-              className="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-all text-xs border border-slate-700"
+              className="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-all text-xs border border-slate-200"
             >
               <span className="material-symbols-outlined text-[18px]">close</span>
             </button>
@@ -199,7 +217,7 @@ export default function ScientificAssistantPanel({
       </div>
 
       {/* Quick Actions Preset Ribbon */}
-      <div className="px-4 py-2.5 bg-surface-container-low border-b border-slate-800/80 flex items-center gap-2 overflow-x-auto relative z-10 no-scrollbar">
+      <div className="px-4 py-2.5 bg-surface-container-low border-b border-slate-200 flex items-center gap-2 overflow-x-auto relative z-10 no-scrollbar">
         <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-on-surface-variant shrink-0 flex items-center gap-1">
           <span className="material-symbols-outlined text-[13px] text-tertiary">bolt</span>
           Quick:
@@ -220,7 +238,7 @@ export default function ScientificAssistantPanel({
           type="button"
           onClick={() => handleSendQuestion("Explain SHAP")}
           disabled={loading}
-          className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-surface-container-high hover:bg-surface-container-highest text-cyan-300 border border-cyan-500/30 hover:border-cyan-400 transition-all shrink-0 active:scale-95 disabled:opacity-50"
+          className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-surface-container-high hover:bg-surface-container-highest text-cyan-700 border border-cyan-500/30 hover:border-cyan-600 transition-all shrink-0 active:scale-95 disabled:opacity-50"
         >
           Explain SHAP
         </button>
@@ -230,7 +248,7 @@ export default function ScientificAssistantPanel({
           type="button"
           onClick={() => handleSendQuestion("How to improve?")}
           disabled={loading}
-          className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-surface-container-high hover:bg-surface-container-highest text-amber-300 border border-amber-500/30 hover:border-amber-400 transition-all shrink-0 active:scale-95 disabled:opacity-50"
+          className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-surface-container-high hover:bg-surface-container-highest text-amber-700 border border-amber-500/30 hover:border-amber-600 transition-all shrink-0 active:scale-95 disabled:opacity-50"
         >
           How to improve?
         </button>
@@ -254,7 +272,7 @@ export default function ScientificAssistantPanel({
             type="button"
             onClick={() => handleSendQuestion("Compare analogs")}
             disabled={loading}
-            className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-surface-container-high hover:bg-surface-container-highest text-purple-300 border border-purple-500/30 transition-all shrink-0 active:scale-95 disabled:opacity-50"
+            className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-surface-container-high hover:bg-surface-container-highest text-purple-700 border border-purple-500/30 transition-all shrink-0 active:scale-95 disabled:opacity-50"
           >
             Compare analogs
           </button>
@@ -271,20 +289,20 @@ export default function ScientificAssistantPanel({
               className={`flex items-start gap-3 ${isUser ? "justify-end" : "justify-start"}`}
             >
               {!isUser && (
-                <div className="w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary shrink-0 border border-slate-700 mt-0.5">
+                <div className="w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary shrink-0 border border-slate-200 mt-0.5">
                   <span className="material-symbols-outlined text-[16px]">psychology</span>
                 </div>
               )}
 
               <div
-                className={`max-w-[85%] rounded-2xl p-4 shadow-md ${
+                className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
                   isUser
-                    ? "bg-primary text-surface-container-lowest font-medium rounded-tr-none"
-                    : "bg-surface-container-low border border-slate-800 text-on-surface rounded-tl-none space-y-2"
+                    ? "bg-primary text-white font-medium rounded-tr-none"
+                    : "bg-surface-container-low border border-slate-200 text-on-surface rounded-tl-none space-y-2"
                 }`}
               >
                 {isUser ? (
-                  <p className="font-mono text-xs">{msg.content}</p>
+                  <p className="font-mono text-xs text-white">{msg.content}</p>
                 ) : (
                   <div className="space-y-2 text-xs leading-relaxed text-on-surface">
                     {/* Formatted Markdown Rendering */}
@@ -340,10 +358,10 @@ export default function ScientificAssistantPanel({
 
         {loading && (
           <div className="flex items-start gap-3 justify-start animate-pulse">
-            <div className="w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary shrink-0 border border-slate-700">
+            <div className="w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary shrink-0 border border-slate-200">
               <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>
             </div>
-            <div className="bg-surface-container-low border border-slate-800 rounded-2xl rounded-tl-none p-3.5 text-on-surface-variant font-mono text-xs flex items-center gap-2">
+            <div className="bg-surface-container-low border border-slate-200 rounded-2xl rounded-tl-none p-3.5 text-on-surface-variant font-mono text-xs flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-primary animate-bounce" />
               <span className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:0.2s]" />
               <span className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:0.4s]" />
@@ -356,7 +374,7 @@ export default function ScientificAssistantPanel({
       </div>
 
       {/* Input Bar & Scientific Disclaimer */}
-      <div className="p-4 bg-surface-container-high border-t border-slate-800 flex flex-col gap-2 relative z-10">
+      <div className="p-4 bg-surface-container-high border-t border-slate-200 flex flex-col gap-2 relative z-10">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -370,21 +388,21 @@ export default function ScientificAssistantPanel({
             onChange={(e) => setInputQuestion(e.target.value)}
             placeholder={`Ask about ${activeName}'s BBB prediction, SHAP values, or optimization...`}
             disabled={loading}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-slate-700 text-xs font-mono text-on-surface focus:outline-none focus:border-primary placeholder:text-slate-500 disabled:opacity-50"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-slate-300 text-xs font-mono text-on-surface focus:outline-none focus:border-primary placeholder:text-slate-400 disabled:opacity-50"
           />
 
           <button
             type="submit"
             disabled={loading || !inputQuestion.trim()}
-            className="px-4 py-2.5 rounded-xl bg-primary text-surface-container-lowest font-mono text-xs font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 disabled:opacity-40 transition-all flex items-center gap-1.5 shrink-0 shadow-md"
+            className="px-4 py-2.5 rounded-xl bg-primary text-white font-mono text-xs font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 disabled:opacity-40 transition-all flex items-center gap-1.5 shrink-0 shadow-sm"
           >
-            <span className="material-symbols-outlined text-[16px]">send</span>
-            <span className="hidden sm:inline">Ask</span>
+            <span className="material-symbols-outlined text-[16px] text-white">send</span>
+            <span className="hidden sm:inline text-white">Ask</span>
           </button>
         </form>
 
         {/* Computational Disclaimer */}
-        <div className="flex items-center justify-between text-[10px] font-mono text-on-surface-variant px-1 pt-1 border-t border-slate-800/60">
+        <div className="flex items-center justify-between text-[10px] font-mono text-on-surface-variant px-1 pt-1 border-t border-slate-200">
           <span className="flex items-center gap-1">
             <span className="material-symbols-outlined text-[13px] text-tertiary">info</span>
             <span>Computational estimate • Not an experimental assay result</span>
@@ -410,7 +428,7 @@ function renderFormattedInline(text: string) {
       return (
         <code
           key={index}
-          className="px-1.5 py-0.5 rounded bg-surface-container-lowest text-primary font-mono text-[11px] border border-slate-800"
+          className="px-1.5 py-0.5 rounded bg-surface-container-lowest text-primary font-mono text-[11px] border border-slate-200"
         >
           {part.slice(1, -1)}
         </code>

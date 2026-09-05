@@ -276,4 +276,59 @@ export async function askAssistant(request: AssistantRequest): Promise<Assistant
   return data as AssistantResponse;
 }
 
+export interface CandidateDescriptorDelta {
+  original_value: number;
+  candidate_value: number;
+  absolute_delta: number;
+  percentage_delta: number;
+}
+
+export interface OptimizedCandidate {
+  candidate_id: number;
+  name: string;
+  strategy: string;
+  strategy_description: string;
+  prediction: "permeable" | "non_permeable";
+  permeable_probability: number;
+  confidence: number;
+  delta_probability: number;
+  delta_percentage_points: number;
+  features: FeatureDict;
+  descriptor_deltas: Record<string, CandidateDescriptorDelta>;
+  rationale: string;
+}
+
+export interface OptimizeRequest {
+  smiles?: string;
+  features?: FeatureDict;
+  candidate_count?: number;
+  target_probability?: number;
+}
+
+export interface OptimizeResponse {
+  valid_smiles: boolean;
+  original_smiles?: string;
+  original_prediction: "permeable" | "non_permeable";
+  original_probability: number;
+  original_features: FeatureDict;
+  candidates: OptimizedCandidate[];
+  limiting_features: string[];
+  disclaimer: string;
+}
+
+export async function optimizeMolecule(request: OptimizeRequest): Promise<OptimizeResponse> {
+  const res = await fetch(`${API_BASE_URL}/optimize`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request)
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Optimization calculation failed.");
+  }
+  return data as OptimizeResponse;
+}
+
+
 

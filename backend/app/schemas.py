@@ -160,3 +160,49 @@ class AssistantResponse(BaseModel):
     suggested_followups: Optional[List[str]] = Field(None, description="Suggested follow-up scientific questions")
 
 
+# --- Molecular Optimization Schemas (Level 1: Descriptor Optimization) ---
+
+class CandidateDescriptorDelta(BaseModel):
+    original_value: float = Field(..., description="Original baseline descriptor value")
+    candidate_value: float = Field(..., description="Optimized candidate descriptor value")
+    absolute_delta: float = Field(..., description="Difference (candidate - original)")
+    percentage_delta: float = Field(..., description="Percentage shift relative to original")
+
+
+class OptimizedCandidate(BaseModel):
+    candidate_id: int = Field(..., example=1, description="Sequential candidate rank / ID")
+    name: str = Field(..., example="Candidate 1", description="Candidate identifier title")
+    strategy: str = Field(..., example="Polarity Derisking", description="Medicinal chemistry optimization strategy applied")
+    strategy_description: str = Field(..., description="Chemist-oriented rationale for the parameter shifts")
+    prediction: str = Field(..., example="permeable", description="'permeable' | 'non_permeable'")
+    permeable_probability: float = Field(..., example=0.824, description="Re-evaluated model BBB probability (0.0 to 1.0)")
+    confidence: float = Field(..., example=0.824, description="Model confidence score")
+    delta_probability: float = Field(..., example=0.683, description="Absolute probability delta vs original (0.0 to 1.0)")
+    delta_percentage_points: float = Field(..., example=68.3, description="Probability shift in percentage points")
+    features: Dict[str, float] = Field(..., description="Full 7 RDKit descriptor vector of the candidate")
+    descriptor_deltas: Dict[str, CandidateDescriptorDelta] = Field(..., description="Descriptor-by-descriptor comparison against baseline")
+    rationale: str = Field(..., description="Executive summary of why this modification improves predicted crossing")
+
+
+class OptimizeRequest(BaseModel):
+    smiles: Optional[str] = Field(None, example="NCCc1ccc(O)c(O)c1", description="Original molecule SMILES string")
+    features: Optional[Dict[str, float]] = Field(None, description="Optional pre-computed descriptor vector")
+    candidate_count: int = Field(4, ge=1, le=8, description="Number of candidate modifications to generate (1 to 8)")
+    target_probability: Optional[float] = Field(0.75, ge=0.5, le=1.0, description="Desired minimum target BBB permeability probability")
+
+
+class OptimizeResponse(BaseModel):
+    valid_smiles: bool = Field(True, description="Whether input was valid")
+    original_smiles: Optional[str] = Field(None, example="NCCc1ccc(O)c(O)c1", description="Original SMILES string")
+    original_prediction: str = Field(..., example="non_permeable", description="Original classification")
+    original_probability: float = Field(..., example=0.141, description="Original BBB permeability probability")
+    original_features: Dict[str, float] = Field(..., description="Baseline 7 RDKit descriptors")
+    candidates: List[OptimizedCandidate] = Field(..., description="List of generated candidates ranked descending by BBB probability")
+    limiting_features: List[str] = Field(..., description="Key baseline descriptors that were identified as limiting BBB permeability")
+    disclaimer: str = Field(
+        "Hypothetical molecular modifications generated in-silico for exploration. Computational predictions do not guarantee biological activity or BBB penetration in-vivo.",
+        description="Scientific safety and computational disclaimer"
+    )
+
+
+

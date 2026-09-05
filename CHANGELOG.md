@@ -4,6 +4,16 @@ All notable changes to the BrainGate project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - Molecular Modification Simulator (Level 1: Descriptor Optimization)
+- Created `backend/app/molecular_optimizer.py`: Automated medicinal chemistry optimization engine that identifies negative SHAP limiting factors and generates diversified candidate profiles (Targeted Polar Capping, CNS MPO Polarity Derisking, Lipophilicity & Rigidity Balancing, Multi-Parameter Lead, Scaffold Rigidification, Compact Fragment Analog). Re-evaluates each candidate through the real trained XGBoost model (`xgb_bbbp_model.pkl`), computes descriptor deltas and probability shifts, and ranks candidates descending by predicted BBB permeability.
+- Updated `backend/app/schemas.py`: Added `CandidateDescriptorDelta`, `OptimizedCandidate`, `OptimizeRequest`, and `OptimizeResponse` with safety and computational disclaimer notices.
+- Updated `backend/app/main.py`: Registered `POST /optimize` endpoint.
+- Created `backend/scripts/test_optimizer.py`: Automated test suite for candidate generation, ranking validation, descriptor delta math, and error handling.
+- Created `frontend/components/MolecularOptimizer.tsx`: Interactive Next.js component with candidate count selector, ranked candidate cards grid with live probability shift badges, side-by-side Before-vs-After comparison table with absolute and percentage shifts, and direct "Explain with AI" and "Fine-tune in What-If" integrations.
+- Updated `frontend/lib/api.ts`: Added TypeScript interfaces and `optimizeMolecule` client function.
+- Updated `frontend/components/PredictionCard.tsx`: Added "Improve BBB" action button.
+- Updated `frontend/app/page.tsx`: Added dedicated "Molecular Optimizer" workspace tab and wired actions between cards and assistant drawer.
+
 ### Added - BrainGate Scientific Assistant (LLM Explanation Layer)
 - Created `backend/app/ai_assistant.py`: Decoupled explanation layer that ingests structured prediction contexts (SMILES, descriptors, probability, SHAP attributions, What-if simulations, candidate comparisons) without computing or altering model predictions. Includes strict epistemic prompts ("predicts a higher likelihood of" vs "will cross in reality"), handles missing context gracefully, and provides a domain-grounded medicinal chemistry reasoning engine as a zero-dependency fallback alongside Gemini/OpenAI API integrations.
 - Updated `backend/app/schemas.py`: Added `ChatMessage`, `AssistantContext`, `AssistantRequest`, and `AssistantResponse` with computational disclaimer notices.

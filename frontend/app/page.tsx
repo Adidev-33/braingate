@@ -13,6 +13,7 @@ import InvalidSmilesBanner from "@/components/InvalidSmilesBanner";
 import ComparisonView from "@/components/ComparisonView";
 import WhatIfSimulator from "@/components/WhatIfSimulator";
 import ScientificAssistantPanel from "@/components/ScientificAssistantPanel";
+import MolecularOptimizer from "@/components/MolecularOptimizer";
 import {
   predictScorecard,
   ScorecardResponse,
@@ -21,7 +22,7 @@ import {
   SolubilityPredictResponse
 } from "@/lib/api";
 
-type PropertyTab = "bbb" | "toxicity" | "solubility" | "scorecard" | "what-if" | "assistant";
+type PropertyTab = "bbb" | "optimizer" | "what-if" | "assistant" | "toxicity" | "solubility" | "scorecard";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"predictor" | "compare" | "api">("predictor");
@@ -31,6 +32,14 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [showAssistantDrawer, setShowAssistantDrawer] = useState<boolean>(false);
+  const [assistantInitialQuestion, setAssistantInitialQuestion] = useState<string | undefined>(undefined);
+  const [assistantComparisonData, setAssistantComparisonData] = useState<any | undefined>(undefined);
+
+  const handleOpenAssistantWithContext = (question?: string, extraContext?: any) => {
+    setAssistantInitialQuestion(question);
+    setAssistantComparisonData(extraContext?.comparison_data);
+    setShowAssistantDrawer(true);
+  };
 
   // Run prediction for initial default Caffeine on mount
   useEffect(() => {
@@ -68,14 +77,14 @@ export default function Home() {
           ) : (
             <div className="flex flex-col gap-6">
               {/* Property Navigation Tabs */}
-              <div className="flex flex-wrap items-center justify-between gap-3 bg-surface-container p-1.5 rounded-xl border border-slate-800/80 shadow-md">
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-surface-container p-1.5 rounded-xl border border-slate-200 shadow-sm">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <button
                     id="tab-bbb"
                     onClick={() => setPropertyTab("bbb")}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs font-semibold uppercase tracking-wider transition-all ${
                       propertyTab === "bbb"
-                        ? "bg-surface-container-highest text-primary shadow-sm border border-slate-700"
+                        ? "bg-surface-container-highest text-primary shadow-sm border border-slate-300"
                         : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50"
                     }`}
                   >
@@ -84,11 +93,29 @@ export default function Home() {
                   </button>
 
                   <button
+                    id="tab-optimizer"
+                    onClick={() => setPropertyTab("optimizer")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs font-semibold uppercase tracking-wider transition-all ${
+                      propertyTab === "optimizer"
+                        ? "bg-gradient-to-r from-primary/15 via-tertiary/15 to-primary/15 text-primary shadow-sm border border-primary/40"
+                        : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+                    <span className="flex items-center gap-1.5">
+                      <span>Molecular Optimizer</span>
+                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-primary/20 text-primary uppercase">
+                        Lead Design
+                      </span>
+                    </span>
+                  </button>
+
+                  <button
                     id="tab-what-if"
                     onClick={() => setPropertyTab("what-if")}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs font-semibold uppercase tracking-wider transition-all ${
                       propertyTab === "what-if"
-                        ? "bg-gradient-to-r from-primary/20 via-tertiary/20 to-primary/20 text-primary shadow-sm border border-primary/50"
+                        ? "bg-gradient-to-r from-primary/15 via-tertiary/15 to-primary/15 text-primary shadow-sm border border-primary/40"
                         : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50"
                     }`}
                   >
@@ -106,7 +133,7 @@ export default function Home() {
                     onClick={() => setPropertyTab("assistant")}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs font-semibold uppercase tracking-wider transition-all ${
                       propertyTab === "assistant"
-                        ? "bg-gradient-to-r from-tertiary/20 via-primary/20 to-tertiary/20 text-tertiary shadow-sm border border-tertiary/50"
+                        ? "bg-gradient-to-r from-tertiary/15 via-primary/15 to-tertiary/15 text-tertiary shadow-sm border border-tertiary/40"
                         : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50"
                     }`}
                   >
@@ -124,7 +151,7 @@ export default function Home() {
                     onClick={() => setPropertyTab("toxicity")}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs font-semibold uppercase tracking-wider transition-all ${
                       propertyTab === "toxicity"
-                        ? "bg-surface-container-highest text-amber-400 shadow-sm border border-slate-700"
+                        ? "bg-surface-container-highest text-amber-600 shadow-sm border border-slate-300"
                         : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50"
                     }`}
                   >
@@ -137,7 +164,7 @@ export default function Home() {
                     onClick={() => setPropertyTab("solubility")}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs font-semibold uppercase tracking-wider transition-all ${
                       propertyTab === "solubility"
-                        ? "bg-surface-container-highest text-cyan-400 shadow-sm border border-slate-700"
+                        ? "bg-surface-container-highest text-cyan-700 shadow-sm border border-slate-300"
                         : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50"
                     }`}
                   >
@@ -150,7 +177,7 @@ export default function Home() {
                     onClick={() => setPropertyTab("scorecard")}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs font-semibold uppercase tracking-wider transition-all ${
                       propertyTab === "scorecard"
-                        ? "bg-gradient-to-r from-primary/20 to-tertiary/20 text-tertiary shadow-sm border border-tertiary/40"
+                        ? "bg-gradient-to-r from-primary/15 to-tertiary/15 text-tertiary shadow-sm border border-tertiary/40"
                         : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50"
                     }`}
                   >
@@ -166,8 +193,51 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* What-If Simulator Dedicated Workspace View */}
-              {propertyTab === "what-if" ? (
+              {/* Molecular Optimizer Dedicated Workspace View */}
+              {propertyTab === "optimizer" ? (
+                <div className="flex flex-col gap-6">
+                  <SmilesInput
+                    smiles={smiles}
+                    setSmiles={setSmiles}
+                    onSubmit={handlePredict}
+                    loading={loading}
+                    liveFeatures={scorecard?.features}
+                  />
+
+                  {loading && (
+                    <div className="bg-surface-container rounded-xl p-12 text-center space-y-4 shadow-xl">
+                      <span className="material-symbols-outlined text-[36px] text-primary animate-spin">
+                        sync
+                      </span>
+                      <div className="space-y-1">
+                        <h3 className="text-base font-semibold text-on-surface">Evaluating Candidate Optimizations</h3>
+                        <p className="font-mono text-xs text-on-surface-variant">
+                          Computing SHAP feature attributions & generating candidates...
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {!loading && error && (
+                    <InvalidSmilesBanner
+                      error={error}
+                      onClear={() => {
+                        setError(null);
+                        setSmiles("");
+                      }}
+                    />
+                  )}
+
+                  {!loading && !error && bbbResult && (
+                    <MolecularOptimizer
+                      originalResult={bbbResult}
+                      smiles={smiles}
+                      onOpenAssistant={handleOpenAssistantWithContext}
+                      onApplyToWhatIf={() => setPropertyTab("what-if")}
+                    />
+                  )}
+                </div>
+              ) : propertyTab === "what-if" ? (
                 <div className="flex flex-col gap-6">
                   <SmilesInput
                     smiles={smiles}
@@ -337,6 +407,21 @@ export default function Home() {
                       loading={loading}
                       liveFeatures={scorecard?.features}
                     />
+
+                    {/* Computed RDKit Descriptors vs CNS MPO Rules on the Left Side */}
+                    {!loading && !error && scorecard && (
+                      <div className="mt-2">
+                        {propertyTab === "bbb" && bbbResult && (
+                          <FeaturesTable features={bbbResult.features} />
+                        )}
+                        {propertyTab === "toxicity" && toxResult && (
+                          <FeaturesTable features={toxResult.features} />
+                        )}
+                        {propertyTab === "solubility" && solResult && (
+                          <FeaturesTable features={solResult.features} />
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* RIGHT COLUMN: Results & SHAP Explanation (5 Cols ~ 40%) */}
@@ -371,11 +456,11 @@ export default function Home() {
                           <>
                             <PredictionCard
                               result={bbbResult}
+                              onOpenOptimizer={() => setPropertyTab("optimizer")}
                               onOpenSimulator={() => setPropertyTab("what-if")}
-                              onOpenAssistant={() => setShowAssistantDrawer(true)}
+                              onOpenAssistant={() => handleOpenAssistantWithContext()}
                             />
                             <ShapBarChart shapData={bbbResult.shap_explanation} />
-                            <FeaturesTable features={bbbResult.features} />
                           </>
                         )}
 
@@ -383,7 +468,6 @@ export default function Home() {
                           <>
                             <ToxPredictionCard result={toxResult} />
                             <ShapBarChart shapData={toxResult.shap_explanation} />
-                            <FeaturesTable features={toxResult.features} />
                           </>
                         )}
 
@@ -391,7 +475,6 @@ export default function Home() {
                           <>
                             <SolubilityPredictionCard result={solResult} />
                             <ShapBarChart shapData={solResult.shap_explanation} />
-                            <FeaturesTable features={solResult.features} />
                           </>
                         )}
                       </>
@@ -420,18 +503,24 @@ export default function Home() {
 
       {/* SLIDE-OVER ASSISTANT DRAWER MODAL */}
       {showAssistantDrawer && bbbResult && (
-        <div className="fixed inset-0 z-50 flex items-center justify-end p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-end p-4 sm:p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="w-full max-w-xl h-full flex flex-col animate-in slide-in-from-right duration-300">
             <ScientificAssistantPanel
               originalResult={bbbResult}
               smiles={smiles}
-              onClose={() => setShowAssistantDrawer(false)}
+              initialQuestion={assistantInitialQuestion}
+              comparisonData={assistantComparisonData}
+              onClose={() => {
+                setShowAssistantDrawer(false);
+                setAssistantInitialQuestion(undefined);
+                setAssistantComparisonData(undefined);
+              }}
             />
           </div>
         </div>
       )}
 
-      <footer className="w-full bg-surface-container-low py-4 border-t border-slate-800 shadow-lg">
+      <footer className="w-full bg-surface-container-low py-4 border-t border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-on-surface-variant">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">

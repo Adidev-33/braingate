@@ -69,46 +69,50 @@ export default function FeaturesTable({ features }: Props) {
   ];
 
   return (
-    <div className="glass-panel p-6 rounded-2xl space-y-4">
-      <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
-        <div className="p-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-          <Sliders className="w-5 h-5" />
+    <div className="bg-surface-container rounded-xl p-6 shadow-sm border border-slate-200 space-y-4">
+      <div className="flex items-center gap-3 border-b border-slate-200 pb-3">
+        <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+          <Sliders className="w-4 h-4" />
         </div>
         <div>
-          <h3 className="text-base font-semibold text-white">Computed RDKit Descriptors vs CNS MPO Rules</h3>
-          <p className="text-xs text-slate-400">Comparing calculated features against pharmacologist guidelines</p>
+          <h3 className="text-base font-bold text-on-surface tracking-tight">
+            Computed RDKit Descriptors vs CNS MPO Rules
+          </h3>
+          <p className="text-xs text-on-surface-variant font-mono">
+            Comparing calculated features against pharmacologist lead optimization guidelines
+          </p>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
-          <thead>
-            <tr className="border-b border-slate-800 text-slate-400 font-mono uppercase text-[10px]">
-              <th className="py-2.5 px-3">Descriptor</th>
-              <th className="py-2.5 px-3">Value</th>
-              <th className="py-2.5 px-3">CNS MPO Guideline</th>
-              <th className="py-2.5 px-3">Status</th>
-              <th className="py-2.5 px-3 hidden md:table-cell">Pharmacological Rationale</th>
+      <div className="overflow-x-auto rounded-lg border border-slate-200">
+        <table className="w-full text-left text-xs font-mono">
+          <thead className="bg-surface-container-high border-b border-slate-200 text-on-surface-variant text-[10px] uppercase tracking-wider">
+            <tr>
+              <th className="py-2.5 px-3.5">Descriptor</th>
+              <th className="py-2.5 px-3.5">Value</th>
+              <th className="py-2.5 px-3.5">CNS MPO Guideline</th>
+              <th className="py-2.5 px-3.5">Status</th>
+              <th className="py-2.5 px-3.5">Pharmacological Rationale</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60 font-medium">
+          <tbody className="divide-y divide-slate-200 bg-surface-container-low font-medium">
             {rows.map((row) => (
-              <tr key={row.key} className="hover:bg-slate-900/40 transition-colors">
-                <td className="py-3 px-3 text-slate-200 font-semibold">{row.name}</td>
-                <td className="py-3 px-3 font-mono text-indigo-300">{row.val}</td>
-                <td className="py-3 px-3 font-mono text-slate-400">{row.threshold}</td>
-                <td className="py-3 px-3">
+              <tr key={row.key} className="hover:bg-surface-container-high/50 transition-colors">
+                <td className="py-3 px-3.5 text-on-surface font-semibold font-sans">{row.name}</td>
+                <td className="py-3 px-3.5 font-mono text-primary font-bold">{row.val}</td>
+                <td className="py-3 px-3.5 font-mono text-slate-600 font-semibold">{row.threshold}</td>
+                <td className="py-3 px-3.5">
                   {row.pass ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-tertiary/15 text-tertiary border border-tertiary/30 font-bold">
                       <CheckCircle2 className="w-3 h-3" /> Favorable
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-error/15 text-error border border-error/30 font-bold">
                       <AlertCircle className="w-3 h-3" /> Suboptimal
                     </span>
                   )}
                 </td>
-                <td className="py-3 px-3 text-slate-400 hidden md:table-cell text-[11px]">
+                <td className="py-3 px-3.5 text-on-surface-variant text-[11px] font-sans leading-snug">
                   {row.rule}
                 </td>
               </tr>

@@ -7,9 +7,10 @@ interface Props {
   result: PredictResponse;
   onOpenSimulator?: () => void;
   onOpenAssistant?: () => void;
+  onOpenOptimizer?: () => void;
 }
 
-export default function PredictionCard({ result, onOpenSimulator, onOpenAssistant }: Props) {
+export default function PredictionCard({ result, onOpenSimulator, onOpenAssistant, onOpenOptimizer }: Props) {
   const isPermeable = result.prediction === "permeable";
   const confidencePct = Math.round(result.confidence * 100);
   const strokeDashoffset = 264 - (264 * confidencePct) / 100;
@@ -143,7 +144,7 @@ export default function PredictionCard({ result, onOpenSimulator, onOpenAssistan
       </div>
 
       {/* Biological Rationale Card */}
-      <div className="bg-surface-container-low p-4 rounded-lg shadow-sm border border-slate-800 space-y-2 relative z-10">
+      <div className="bg-surface-container-low p-4 rounded-lg shadow-sm border border-slate-200 space-y-2 relative z-10">
         <div className="flex items-center gap-2 text-xs font-semibold text-primary">
           <span className="material-symbols-outlined text-[18px]">psychology</span>
           <span className="font-mono uppercase tracking-wider text-[11px]">
@@ -155,19 +156,33 @@ export default function PredictionCard({ result, onOpenSimulator, onOpenAssistan
         </p>
       </div>
 
-      {/* Action Buttons: Simulator & Scientific Assistant */}
-      <div className="relative z-10 flex flex-col sm:flex-row items-center gap-2.5">
+      {/* Action Buttons: Optimizer, Simulator & Scientific Assistant */}
+      <div className="relative z-10 flex flex-col sm:flex-row items-center gap-2">
+        {onOpenOptimizer && (
+          <button
+            type="button"
+            id="btn-open-optimizer"
+            onClick={onOpenOptimizer}
+            className="flex-1 w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-primary to-tertiary hover:opacity-95 text-white transition-all shadow-md group"
+          >
+            <span className="material-symbols-outlined text-[16px] group-hover:rotate-45 transition-transform text-white">
+              auto_awesome
+            </span>
+            <span>Improve BBB</span>
+          </button>
+        )}
+
         {onOpenSimulator && (
           <button
             type="button"
             id="btn-open-what-if"
             onClick={onOpenSimulator}
-            className="flex-1 w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-surface-container-high hover:bg-surface-container-highest text-primary border border-primary/40 hover:border-primary transition-all shadow-sm group"
+            className="flex-1 w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-surface-container-high hover:bg-surface-container-highest text-primary border border-primary/40 hover:border-primary transition-all shadow-sm group"
           >
-            <span className="material-symbols-outlined text-[17px] text-primary group-hover:rotate-12 transition-transform">
+            <span className="material-symbols-outlined text-[16px] group-hover:rotate-12 transition-transform">
               tune
             </span>
-            <span>What-if Simulator</span>
+            <span>What-If</span>
           </button>
         )}
 
@@ -176,12 +191,12 @@ export default function PredictionCard({ result, onOpenSimulator, onOpenAssistan
             type="button"
             id="btn-open-assistant"
             onClick={onOpenAssistant}
-            className="flex-1 w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-primary/20 via-tertiary/20 to-primary/20 hover:from-primary/30 hover:to-tertiary/30 text-tertiary border border-tertiary/40 hover:border-tertiary transition-all shadow-sm group"
+            className="flex-1 w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-surface-container-high hover:bg-surface-container-highest text-tertiary border border-tertiary/40 hover:border-tertiary transition-all shadow-sm group"
           >
-            <span className="material-symbols-outlined text-[17px] text-tertiary group-hover:scale-110 transition-transform">
+            <span className="material-symbols-outlined text-[16px] group-hover:scale-110 transition-transform">
               smart_toy
             </span>
-            <span>Ask Assistant</span>
+            <span>Assistant</span>
           </button>
         )}
       </div>

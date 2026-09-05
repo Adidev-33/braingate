@@ -13,7 +13,7 @@ export default function ToxPredictionCard({ result }: Props) {
   const strokeDashoffset = 264 - (264 * confidencePct) / 100;
 
   return (
-    <div className="relative overflow-hidden bg-surface-container rounded-xl p-6 shadow-xl flex flex-col gap-6 border border-slate-800/80">
+    <div className="relative overflow-hidden bg-surface-container rounded-xl p-6 shadow-sm flex flex-col gap-6 border border-slate-200">
       {/* Background Glow */}
       <div
         className={`absolute -left-10 -bottom-10 w-48 h-48 rounded-full blur-3xl pointer-events-none ${
@@ -27,8 +27,8 @@ export default function ToxPredictionCard({ result }: Props) {
           <div
             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-xs uppercase tracking-wider mb-2 font-semibold shadow-sm ${
               !isToxic
-                ? "bg-tertiary/20 text-tertiary shadow-[0_0_16px_rgba(78,222,163,0.3)]"
-                : "bg-amber-500/20 text-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.3)]"
+                ? "bg-tertiary/15 text-tertiary shadow-sm"
+                : "bg-amber-500/15 text-amber-700 shadow-sm"
             }`}
           >
             <span className="material-symbols-outlined text-[16px]">
@@ -61,8 +61,8 @@ export default function ToxPredictionCard({ result }: Props) {
               <circle
                 className={`${
                   !isToxic
-                    ? "text-tertiary drop-shadow-[0_0_8px_rgba(78,222,163,0.7)]"
-                    : "text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.7)]"
+                    ? "text-tertiary"
+                    : "text-amber-600"
                 } fill-transparent transition-all duration-1000 ease-out`}
                 cx="50"
                 cy="50"
@@ -78,7 +78,7 @@ export default function ToxPredictionCard({ result }: Props) {
               <span className="font-mono text-base font-bold text-on-surface">{confidencePct}%</span>
               <span
                 className={`font-mono text-[9px] uppercase -mt-0.5 font-bold ${
-                  !isToxic ? "text-tertiary" : "text-amber-400"
+                  !isToxic ? "text-tertiary" : "text-amber-700"
                 }`}
               >
                 CONF.
@@ -91,14 +91,14 @@ export default function ToxPredictionCard({ result }: Props) {
 
       {/* Physicochemical Metric Grid */}
       <div className="grid grid-cols-2 gap-3 relative z-10">
-        <div className="bg-surface-container-low p-3 rounded-lg shadow-sm border border-slate-800/40">
+        <div className="bg-surface-container-low p-3 rounded-lg shadow-sm border border-slate-200">
           <span className="font-mono text-[10px] text-on-surface-variant uppercase">
             Toxic Probability
           </span>
           <div className="flex items-baseline gap-1 mt-1">
             <span
               className={`font-mono text-base font-bold ${
-                !isToxic ? "text-tertiary" : "text-amber-400"
+                !isToxic ? "text-tertiary" : "text-amber-700"
               }`}
             >
               {(result.toxic_probability * 100).toFixed(1)}%
@@ -109,7 +109,7 @@ export default function ToxPredictionCard({ result }: Props) {
           </p>
         </div>
 
-        <div className="bg-surface-container-low p-3 rounded-lg shadow-sm border border-slate-800/40">
+        <div className="bg-surface-container-low p-3 rounded-lg shadow-sm border border-slate-200">
           <span className="font-mono text-[10px] text-on-surface-variant uppercase">
             Safety Margin
           </span>
@@ -125,7 +125,7 @@ export default function ToxPredictionCard({ result }: Props) {
       </div>
 
       {/* Rationale Sentence Callout */}
-      <div className="relative z-10 bg-surface-container-lowest/80 p-4 rounded-lg border border-slate-800/60 flex flex-col gap-1.5">
+      <div className="relative z-10 bg-surface-container-lowest p-4 rounded-lg border border-slate-200 flex flex-col gap-1.5">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-[16px] text-primary">
             clinical_notes

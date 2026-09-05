@@ -21,16 +21,16 @@ export default function ScorecardView({ scorecard }: Props) {
   return (
     <div className="flex flex-col gap-6">
       {/* Executive Multi-Property Screener Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-surface-container-high/90 via-surface-container/90 to-surface-container-high/90 rounded-2xl p-6 shadow-2xl border border-slate-700/80">
+      <div className="relative overflow-hidden bg-gradient-to-r from-surface-container-high/90 via-surface-container/90 to-surface-container-high/90 rounded-2xl p-6 shadow-sm border border-slate-200">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
           <div className="flex items-start gap-4">
             <div
-              className={`p-3 rounded-xl flex items-center justify-center shrink-0 shadow-lg ${
+              className={`p-3 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
                 passCount === 3
                   ? "bg-tertiary/20 text-tertiary border border-tertiary/40"
                   : passCount === 2
-                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/40"
-                  : "bg-rose-500/20 text-rose-400 border border-rose-500/40"
+                  ? "bg-amber-500/20 text-amber-700 border border-amber-500/40"
+                  : "bg-rose-500/20 text-rose-700 border border-rose-500/40"
               }`}
             >
               <span className="material-symbols-outlined text-[32px]">
@@ -48,8 +48,8 @@ export default function ScorecardView({ scorecard }: Props) {
                     passCount === 3
                       ? "bg-tertiary/20 text-tertiary"
                       : passCount === 2
-                      ? "bg-amber-500/20 text-amber-400"
-                      : "bg-rose-500/20 text-rose-400"
+                      ? "bg-amber-500/20 text-amber-700"
+                      : "bg-rose-500/20 text-rose-700"
                   }`}
                 >
                   {passCount === 3 ? "Lead Optimization Prime" : passCount === 2 ? "Viable with Caveats" : "High Liability"}
@@ -64,7 +64,7 @@ export default function ScorecardView({ scorecard }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 bg-surface-container-lowest/80 px-4 py-2 rounded-xl border border-slate-800">
+          <div className="flex items-center gap-2 shrink-0 bg-surface-container-lowest px-4 py-2 rounded-xl border border-slate-200">
             <div className="text-right font-mono">
               <div className="text-[10px] text-on-surface-variant uppercase">Screener engines</div>
               <div className="text-xs font-bold text-primary">BBBP • Tox21 • ESOL</div>
@@ -76,7 +76,7 @@ export default function ScorecardView({ scorecard }: Props) {
       {/* 3 Side-by-Side Property Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* 1. BBB Permeability */}
-        <div className="bg-surface-container rounded-xl p-5 shadow-xl border border-slate-800/80 flex flex-col justify-between">
+        <div className="bg-surface-container rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between gap-2 mb-3">
               <span className="font-mono text-[10px] uppercase text-outline tracking-wider font-semibold">
@@ -103,14 +103,14 @@ export default function ScorecardView({ scorecard }: Props) {
               {bbb.summary_sentence}
             </p>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs font-mono">
+          <div className="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between text-xs font-mono">
             <span className="text-on-surface-variant">Target: CNS Active</span>
             <span className="text-primary font-semibold">ROC-AUC: 0.889</span>
           </div>
         </div>
 
         {/* 2. Tox21 Toxicity Risk */}
-        <div className="bg-surface-container rounded-xl p-5 shadow-xl border border-slate-800/80 flex flex-col justify-between">
+        <div className="bg-surface-container rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between gap-2 mb-3">
               <span className="font-mono text-[10px] uppercase text-outline tracking-wider font-semibold">
@@ -118,7 +118,7 @@ export default function ScorecardView({ scorecard }: Props) {
               </span>
               <span
                 className={`font-mono text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                  isSafe ? "bg-tertiary/20 text-tertiary" : "bg-amber-500/20 text-amber-400"
+                  isSafe ? "bg-tertiary/20 text-tertiary" : "bg-amber-500/20 text-amber-700"
                 }`}
               >
                 {isSafe ? "Clean" : "Flag"}
@@ -126,7 +126,7 @@ export default function ScorecardView({ scorecard }: Props) {
             </div>
             <h3 className="text-lg font-bold text-on-surface">Cellular Toxicity</h3>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className={`text-xl font-black ${isSafe ? "text-tertiary" : "text-amber-400"}`}>
+              <span className={`text-xl font-black ${isSafe ? "text-tertiary" : "text-amber-700"}`}>
                 {isSafe ? "Low Risk" : "Toxicity Liability"}
               </span>
               <span className="font-mono text-xs text-on-surface-variant">
@@ -137,14 +137,14 @@ export default function ScorecardView({ scorecard }: Props) {
               {toxicity.summary_sentence}
             </p>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs font-mono">
+          <div className="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between text-xs font-mono">
             <span className="text-on-surface-variant">Assays: 12 NR & SR</span>
             <span className="text-primary font-semibold">ROC-AUC: 0.741</span>
           </div>
         </div>
 
         {/* 3. ESOL Solubility */}
-        <div className="bg-surface-container rounded-xl p-5 shadow-xl border border-slate-800/80 flex flex-col justify-between">
+        <div className="bg-surface-container rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between gap-2 mb-3">
               <span className="font-mono text-[10px] uppercase text-outline tracking-wider font-semibold">
@@ -153,10 +153,10 @@ export default function ScorecardView({ scorecard }: Props) {
               <span
                 className={`font-mono text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
                   isHighSolubility
-                    ? "bg-cyan-500/20 text-cyan-400"
+                    ? "bg-cyan-500/20 text-cyan-700"
                     : solubility.solubility_tier === "Moderate"
-                    ? "bg-amber-500/20 text-amber-400"
-                    : "bg-rose-500/20 text-rose-400"
+                    ? "bg-amber-500/20 text-amber-700"
+                    : "bg-rose-500/20 text-rose-700"
                 }`}
               >
                 {solubility.solubility_tier}
@@ -164,7 +164,7 @@ export default function ScorecardView({ scorecard }: Props) {
             </div>
             <h3 className="text-lg font-bold text-on-surface">Aqueous Solubility</h3>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-xl font-black text-cyan-400">
+              <span className="text-xl font-black text-cyan-700">
                 {solubility.log_solubility.toFixed(2)} log(mol/L)
               </span>
               <span className="font-mono text-xs text-on-surface-variant">
@@ -175,7 +175,7 @@ export default function ScorecardView({ scorecard }: Props) {
               {solubility.summary_sentence}
             </p>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs font-mono">
+          <div className="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between text-xs font-mono">
             <span className="text-on-surface-variant">Model: Delaney/ESOL</span>
             <span className="text-primary font-semibold">R² = 0.851</span>
           </div>
@@ -195,14 +195,14 @@ export default function ScorecardView({ scorecard }: Props) {
           <ShapBarChart shapData={bbb.shap_explanation} />
         </div>
         <div>
-          <h4 className="font-mono text-xs uppercase font-bold text-amber-400 mb-2 flex items-center gap-1.5">
+          <h4 className="font-mono text-xs uppercase font-bold text-amber-700 mb-2 flex items-center gap-1.5">
             <span className="material-symbols-outlined text-[16px]">shield</span>
             Toxicity SHAP Drivers
           </h4>
           <ShapBarChart shapData={toxicity.shap_explanation} />
         </div>
         <div>
-          <h4 className="font-mono text-xs uppercase font-bold text-cyan-400 mb-2 flex items-center gap-1.5">
+          <h4 className="font-mono text-xs uppercase font-bold text-cyan-700 mb-2 flex items-center gap-1.5">
             <span className="material-symbols-outlined text-[16px]">water_drop</span>
             Solubility SHAP Drivers
           </h4>

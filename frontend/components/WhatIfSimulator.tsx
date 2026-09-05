@@ -269,13 +269,13 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
   const selectedConfig = DESCRIPTORS_CONFIG.find((c) => c.key === selectedCurveFeature);
 
   return (
-    <div className="bg-surface-container rounded-2xl p-6 sm:p-8 border border-slate-700/80 shadow-2xl flex flex-col gap-8 relative overflow-hidden">
+    <div className="bg-surface-container rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col gap-8 relative overflow-hidden">
       {/* Background ambient lighting */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-tertiary/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-tertiary/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6 relative z-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6 relative z-10">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono text-[11px] font-bold uppercase tracking-wider">
@@ -283,7 +283,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
               What-if Simulator
             </span>
             <span className="text-outline-variant">•</span>
-            <span className="text-xs font-mono text-tertiary">Real XGBoost Model In-the-Loop</span>
+            <span className="text-xs font-mono text-tertiary font-semibold">Real XGBoost Model In-the-Loop</span>
           </div>
           <h2 className="text-2xl font-bold text-on-surface tracking-tight flex items-center gap-2">
             Molecular Descriptor Sensitivity Simulator
@@ -297,7 +297,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
           <button
             type="button"
             onClick={handleResetAll}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-xs font-semibold bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-all border border-slate-700 shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-xs font-semibold bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-all border border-slate-200 shadow-sm"
           >
             <span className="material-symbols-outlined text-[15px]">restart_alt</span>
             Reset Baseline
@@ -307,7 +307,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-all border border-slate-700"
+              className="p-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-all border border-slate-200"
               title="Close Simulator"
             >
               <span className="material-symbols-outlined text-[20px]">close</span>
@@ -317,7 +317,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
       </div>
 
       {/* ACTIVE ANALYZED MOLECULE CARD */}
-      <div className="bg-surface-container-low/95 p-4 rounded-xl border border-slate-700/80 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10 shadow-sm">
+      <div className="bg-surface-container-low p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10 shadow-sm">
         <div className="flex items-start md:items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-tertiary/20 flex items-center justify-center text-primary shrink-0 border border-primary/30 shadow-inner">
             <span className="material-symbols-outlined text-[22px]">science</span>
@@ -337,7 +337,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
               </span>
             </div>
             <div className="flex items-center gap-2 flex-wrap pt-0.5">
-              <span className="font-mono text-xs text-tertiary bg-surface-container-lowest px-2.5 py-1 rounded-lg border border-slate-800 break-all select-all font-semibold">
+              <span className="font-mono text-xs text-tertiary bg-surface-container-lowest px-2.5 py-1 rounded-lg border border-slate-200 break-all select-all font-semibold">
                 {smiles || "N/A"}
               </span>
               <button
@@ -349,7 +349,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
                     setTimeout(() => setCopiedSmiles(false), 2000);
                   }
                 }}
-                className="px-2 py-1 rounded-md text-[10px] font-mono bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface border border-slate-700 transition-all flex items-center gap-1"
+                className="px-2 py-1 rounded-md text-[10px] font-mono bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface border border-slate-200 transition-all flex items-center gap-1"
                 title="Copy SMILES"
               >
                 <span className="material-symbols-outlined text-[13px]">
@@ -362,16 +362,16 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
         </div>
 
         {/* Baseline Quick Physicochemical Fingerprint */}
-        <div className="flex items-center gap-2.5 font-mono text-xs border-t md:border-t-0 md:border-l border-slate-800 pt-2 md:pt-0 md:pl-4 shrink-0 flex-wrap">
-          <div className="bg-surface-container px-2.5 py-1 rounded-lg border border-slate-800 text-center">
+        <div className="flex items-center gap-2.5 font-mono text-xs border-t md:border-t-0 md:border-l border-slate-200 pt-2 md:pt-0 md:pl-4 shrink-0 flex-wrap">
+          <div className="bg-surface-container px-2.5 py-1 rounded-lg border border-slate-200 text-center">
             <span className="text-[9px] text-on-surface-variant block uppercase">MW</span>
             <span className="font-bold text-on-surface text-xs">{originalResult.features.mol_weight} Da</span>
           </div>
-          <div className="bg-surface-container px-2.5 py-1 rounded-lg border border-slate-800 text-center">
+          <div className="bg-surface-container px-2.5 py-1 rounded-lg border border-slate-200 text-center">
             <span className="text-[9px] text-on-surface-variant block uppercase">TPSA</span>
             <span className="font-bold text-primary text-xs">{originalResult.features.tpsa} Å²</span>
           </div>
-          <div className="bg-surface-container px-2.5 py-1 rounded-lg border border-slate-800 text-center">
+          <div className="bg-surface-container px-2.5 py-1 rounded-lg border border-slate-200 text-center">
             <span className="text-[9px] text-on-surface-variant block uppercase">LogP</span>
             <span className="font-bold text-on-surface text-xs">{originalResult.features.logp}</span>
           </div>
@@ -398,7 +398,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
       {/* TOP COMPARISON CARDS: Baseline vs What-If Live Prediction */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
         {/* Baseline Card */}
-        <div className="bg-surface-container-low p-5 rounded-xl border border-slate-800 flex flex-col justify-between gap-3">
+        <div className="bg-surface-container-low p-5 rounded-xl border border-slate-200 flex flex-col justify-between gap-3">
           <div className="flex items-center justify-between">
             <span className="font-mono text-[11px] uppercase tracking-wider text-on-surface-variant font-bold">
               1. Original Baseline
@@ -421,7 +421,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
         </div>
 
         {/* What-If Live Simulation Card */}
-        <div className="bg-gradient-to-br from-surface-container-high to-surface-container p-5 rounded-xl border border-primary/40 shadow-lg flex flex-col justify-between gap-3 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-surface-container-high to-surface-container p-5 rounded-xl border border-primary/40 shadow-sm flex flex-col justify-between gap-3 relative overflow-hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
@@ -463,7 +463,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
         </div>
 
         {/* Candidate Actions Card */}
-        <div className="bg-surface-container-low p-5 rounded-xl border border-slate-800 flex flex-col justify-between gap-3">
+        <div className="bg-surface-container-low p-5 rounded-xl border border-slate-200 flex flex-col justify-between gap-3">
           <div className="space-y-1">
             <span className="font-mono text-[11px] uppercase tracking-wider text-tertiary font-bold flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[16px]">science</span>
@@ -479,10 +479,10 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
               type="button"
               id="btn-apply-candidate"
               onClick={handleApplyCandidate}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-primary to-tertiary text-surface-container-lowest hover:opacity-90 active:scale-[0.98] transition-all shadow-md"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-primary to-tertiary text-white hover:opacity-90 active:scale-[0.98] transition-all shadow-md"
             >
-              <span className="material-symbols-outlined text-[18px]">send</span>
-              <span>Apply as Candidate</span>
+              <span className="material-symbols-outlined text-[18px] text-white">send</span>
+              <span className="text-white">Apply as Candidate</span>
             </button>
 
             {savedCandidateData && (
@@ -502,14 +502,14 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
 
       {/* SHAP EXPLAINER GUIDANCE CALLOUT */}
       {hurtingFeatures.length > 0 && (
-        <div className="bg-surface-container-low/90 p-4 rounded-xl border border-amber-500/30 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+        <div className="bg-surface-container-low p-4 rounded-xl border border-amber-500/30 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-700 shrink-0 mt-0.5">
               <span className="material-symbols-outlined text-[20px]">lightbulb</span>
             </div>
             <div className="space-y-0.5">
               <div className="flex items-center gap-2">
-                <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-amber-300">
+                <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-amber-800">
                   SHAP Optimization Guidance
                 </h4>
                 <span className="text-[10px] font-mono text-on-surface-variant">
@@ -540,8 +540,8 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
                   onClick={() => handleSelectCurveFeature(item.feature as keyof FeatureDict)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 shadow-sm ${
                     isSelected
-                      ? "bg-amber-400 text-surface-container-lowest font-bold ring-2 ring-amber-300"
-                      : "bg-surface-container-high hover:bg-surface-container-highest text-amber-300 border border-amber-500/40"
+                      ? "bg-amber-600 text-white font-bold ring-2 ring-amber-400"
+                      : "bg-surface-container-high hover:bg-surface-container-highest text-amber-800 border border-amber-500/40"
                   }`}
                 >
                   <span className="material-symbols-outlined text-[15px]">
@@ -580,7 +580,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
                   className={`p-4 rounded-xl border transition-all ${
                     isModified
                       ? "bg-surface-container-high border-primary/50 shadow-md"
-                      : "bg-surface-container-low border-slate-800/80 hover:border-slate-700"
+                      : "bg-surface-container-low border-slate-200 hover:border-slate-300"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2 mb-2">
@@ -605,7 +605,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
                           step={config.step}
                           value={currentVal}
                           onChange={(e) => handleDescriptorChange(config.key, parseFloat(e.target.value) || 0)}
-                          className="w-20 px-2 py-0.5 text-right font-mono text-xs font-bold rounded bg-surface-container-lowest border border-slate-700 text-on-surface focus:outline-none focus:border-primary"
+                          className="w-20 px-2 py-0.5 text-right font-mono text-xs font-bold rounded bg-surface-container-lowest border border-slate-200 text-on-surface focus:outline-none focus:border-primary"
                         />
                         <span className="font-mono text-xs text-on-surface-variant w-6">{config.unit}</span>
                       </div>
@@ -663,7 +663,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
             <span className="text-xs font-mono text-on-surface-variant">Live Sensitivity</span>
           </div>
 
-          <div className="bg-surface-container-low p-5 rounded-xl border border-slate-800 flex flex-col gap-4 shadow-lg">
+          <div className="bg-surface-container-low p-5 rounded-xl border border-slate-200 flex flex-col gap-4 shadow-sm">
             {/* Target Feature Selector Dropdown */}
             <div className="flex items-center justify-between gap-3">
               <label htmlFor="curve-descriptor-select" className="text-xs font-mono text-on-surface-variant">
@@ -673,7 +673,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
                 id="curve-descriptor-select"
                 value={selectedCurveFeature}
                 onChange={(e) => handleSelectCurveFeature(e.target.value as keyof FeatureDict)}
-                className="px-3 py-1.5 rounded-lg bg-surface-container-high border border-slate-700 text-xs font-mono font-semibold text-primary focus:outline-none focus:border-primary"
+                className="px-3 py-1.5 rounded-lg bg-surface-container-high border border-slate-200 text-xs font-mono font-semibold text-primary focus:outline-none focus:border-primary"
               >
                 {DESCRIPTORS_CONFIG.map((c) => (
                   <option key={c.key} value={c.key}>
@@ -698,24 +698,24 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={curveData} margin={{ top: 10, right: 15, left: -20, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.8} />
                     <XAxis
                       dataKey="feature_value"
                       type="number"
                       domain={['dataMin', 'dataMax']}
-                      stroke="#94a3b8"
+                      stroke="#64748b"
                       fontSize={10}
                       tickLine={false}
                       label={{
                         value: `${selectedConfig?.label} (${selectedConfig?.unit || ""})`,
                         position: "insideBottom",
                         offset: -12,
-                        fill: "#94a3b8",
+                        fill: "#64748b",
                         fontSize: 10
                       }}
                     />
                     <YAxis
-                      stroke="#94a3b8"
+                      stroke="#64748b"
                       fontSize={10}
                       domain={[0, 1]}
                       tickFormatter={(val) => `${Math.round(val * 100)}%`}
@@ -725,7 +725,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
                         if (active && payload && payload.length) {
                           const data = payload[0].payload as WhatIfCurvePoint;
                           return (
-                            <div className="bg-surface-container-highest p-2.5 rounded-lg border border-slate-700 shadow-xl font-mono text-[11px] space-y-1">
+                            <div className="bg-surface-container-highest p-2.5 rounded-lg border border-slate-200 shadow-lg font-mono text-[11px] space-y-1">
                               <div className="text-on-surface font-bold">
                                 {selectedConfig?.label}: {data.feature_value} {selectedConfig?.unit}
                               </div>
@@ -744,34 +744,34 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
                     {/* 50% Threshold reference line */}
                     <ReferenceLine
                       y={0.5}
-                      stroke="#f59e0b"
+                      stroke="#d97706"
                       strokeDasharray="4 4"
                       label={{
                         value: "50% Boundary",
                         position: "insideTopRight",
-                        fill: "#f59e0b",
+                        fill: "#d97706",
                         fontSize: 9
                       }}
                     />
                     {/* Current operating point marker */}
                     <ReferenceLine
                       x={modifiedFeatures[selectedCurveFeature]}
-                      stroke="#4edea3"
+                      stroke="#059669"
                       strokeDasharray="2 2"
                       label={{
                         value: "Current",
                         position: "insideTopLeft",
-                        fill: "#4edea3",
+                        fill: "#059669",
                         fontSize: 9
                       }}
                     />
                     <Line
                       type="monotone"
                       dataKey="permeable_probability"
-                      stroke="#38bdf8"
+                      stroke="#0284c7"
                       strokeWidth={2.5}
-                      dot={{ r: 2, fill: "#38bdf8" }}
-                      activeDot={{ r: 5, fill: "#4edea3", stroke: "#0f172a" }}
+                      dot={{ r: 2, fill: "#0284c7" }}
+                      activeDot={{ r: 5, fill: "#059669", stroke: "#0f172a" }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -779,7 +779,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
             </div>
 
             {/* Operating Point Details */}
-            <div className="bg-surface-container p-3 rounded-lg border border-slate-800 flex items-center justify-between text-xs font-mono">
+            <div className="bg-surface-container p-3 rounded-lg border border-slate-200 flex items-center justify-between text-xs font-mono">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-primary" />
                 <span className="text-on-surface-variant">Current Operating Point:</span>
@@ -797,7 +797,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
           </div>
 
           {/* Computational Disclaimer Banner */}
-          <div className="bg-surface-container-lowest/80 p-3.5 rounded-xl border border-slate-800/80 flex items-start gap-2.5 text-on-surface-variant text-[11px] leading-relaxed">
+          <div className="bg-surface-container-lowest p-3.5 rounded-xl border border-slate-200 flex items-start gap-2.5 text-on-surface-variant text-[11px] leading-relaxed">
             <span className="material-symbols-outlined text-[16px] text-tertiary shrink-0 mt-0.5">
               verified_user
             </span>
@@ -810,10 +810,10 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
 
       {/* CANDIDATE INSPECTOR MODAL */}
       {showCandidateModal && savedCandidateData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-surface-container-high rounded-2xl max-w-2xl w-full p-6 border border-slate-700 shadow-2xl flex flex-col gap-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-surface-container-high rounded-2xl max-w-2xl w-full p-6 border border-slate-200 shadow-2xl flex flex-col gap-6 max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex items-start justify-between gap-4 border-b border-slate-700 pb-4">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-tertiary/20 text-tertiary uppercase">
@@ -838,7 +838,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
 
             {/* Molecule & Prediction Summary */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono text-xs">
-              <div className="bg-surface-container-low p-3.5 rounded-xl border border-slate-800 space-y-1">
+              <div className="bg-surface-container-low p-3.5 rounded-xl border border-slate-200 space-y-1">
                 <span className="text-[10px] uppercase text-on-surface-variant font-bold">
                   SMILES String
                 </span>
@@ -847,7 +847,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
                 </p>
               </div>
 
-              <div className="bg-surface-container-low p-3.5 rounded-xl border border-slate-800 space-y-1">
+              <div className="bg-surface-container-low p-3.5 rounded-xl border border-slate-200 space-y-1">
                 <span className="text-[10px] uppercase text-on-surface-variant font-bold">
                   Probability Shift (Baseline → Simulated)
                 </span>
@@ -871,9 +871,9 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
               <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-on-surface">
                 Descriptor Variations (Baseline vs Applied Overrides)
               </h4>
-              <div className="overflow-x-auto rounded-xl border border-slate-800 bg-surface-container-low">
+              <div className="overflow-x-auto rounded-xl border border-slate-200 bg-surface-container-low">
                 <table className="w-full text-left font-mono text-xs">
-                  <thead className="bg-surface-container text-on-surface-variant uppercase text-[10px] border-b border-slate-800">
+                  <thead className="bg-surface-container text-on-surface-variant uppercase text-[10px] border-b border-slate-200">
                     <tr>
                       <th className="px-3 py-2">Descriptor</th>
                       <th className="px-3 py-2 text-right">Original</th>
@@ -881,7 +881,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
                       <th className="px-3 py-2 text-right">Delta</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 text-on-surface">
+                  <tbody className="divide-y divide-slate-200 text-on-surface">
                     {DESCRIPTORS_CONFIG.map((c) => {
                       const orig = savedCandidateData.original_features?.[c.key] ?? originalResult.features[c.key];
                       const mod = savedCandidateData.modified_descriptors?.[c.key] ?? modifiedFeatures[c.key];
@@ -904,7 +904,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
                                 {diff > 0 ? `+${diff}` : diff}
                               </span>
                             ) : (
-                              <span className="text-slate-600">—</span>
+                              <span className="text-slate-400">—</span>
                             )}
                           </td>
                         </tr>
@@ -916,7 +916,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
             </div>
 
             {/* Downstream Integration Details */}
-            <div className="bg-surface-container p-3.5 rounded-xl border border-slate-800 text-xs text-on-surface-variant space-y-1">
+            <div className="bg-surface-container p-3.5 rounded-xl border border-slate-200 text-xs text-on-surface-variant space-y-1">
               <span className="font-bold font-mono text-tertiary flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[15px]">info</span>
                 Downstream Module Consumption:
@@ -935,7 +935,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
                   setAppliedCandidateToast("Copied candidate JSON to clipboard!");
                   setTimeout(() => setAppliedCandidateToast(null), 3000);
                 }}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-mono text-xs font-semibold bg-surface-container hover:bg-surface-container-highest text-on-surface border border-slate-700 transition-all"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-mono text-xs font-semibold bg-surface-container hover:bg-surface-container-highest text-on-surface border border-slate-200 transition-all"
               >
                 <span className="material-symbols-outlined text-[16px]">content_copy</span>
                 <span>Copy JSON</span>
@@ -944,7 +944,7 @@ export default function WhatIfSimulator({ originalResult, smiles, moleculeName, 
               <button
                 type="button"
                 onClick={() => setShowCandidateModal(false)}
-                className="px-5 py-2 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-primary text-surface-container-lowest hover:opacity-90 transition-all"
+                className="px-5 py-2 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-primary text-white hover:opacity-90 transition-all shadow-sm"
               >
                 Close Inspector
               </button>

@@ -16,6 +16,7 @@ from backend.app.model_stretch import Tox21Model, ESOLModel
 from backend.app.explain_stretch import Tox21Explainer, ESOLExplainer
 from backend.app.what_if import run_what_if_simulation, generate_response_curve
 from backend.app.ai_assistant import generate_assistant_response
+from backend.app.molecular_optimizer import optimize_descriptors
 from backend.app.schemas import (
     HealthResponse,
     ExampleMolecule,
@@ -32,7 +33,9 @@ from backend.app.schemas import (
     WhatIfCurveRequest,
     WhatIfCurveResponse,
     AssistantRequest,
-    AssistantResponse
+    AssistantResponse,
+    OptimizeRequest,
+    OptimizeResponse
 )
 
 app = FastAPI(
@@ -530,5 +533,41 @@ def scientific_assistant(request: AssistantRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"error": f"Failed to generate assistant response: {str(e)}"}
         )
+
+
+@app.post(
+    "/optimize",
+    response_model=OptimizeResponse,
+    responses={422: {"model": InvalidSmilesResponse}},
+    tags=["Optimization"]
+)
+def optimize_molecule(request: OptimizeRequest):
+    """
+    Molecular Modification Simulator (Level 1: Descriptor Optimization).
+    Generates ranked hypothetical candidates that relieve SHAP-identified penalties
+    and re-evaluates each through the trained XGBoost model.
+    """
+    try:
+        result = optimize_descriptors(
+            smiles=request.smiles,
+            features=request.features,
+            candidate_count=request.candidate_count,
+            target_probability=request.target_probability or 0.75
+        )
+        return OptimizeResponse(**result)
+    except ValueError as ve:
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={"valid_smiles": False, "error": str(ve)}
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"error": f"Optimization failed: {str(e)}"}
+        )
+
+# Server Reload Timestamp: 2026-09-05T11:48:00
+
+
 
 

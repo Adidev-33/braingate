@@ -81,10 +81,10 @@ export default function SmilesInput({
 
         {/* Code Input Terminal Box */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <div className="relative bg-surface-container-lowest/90 rounded-lg p-4 shadow-inner flex flex-col gap-2 border border-slate-800">
+          <div className="relative bg-surface-container-lowest rounded-lg p-4 shadow-sm flex flex-col gap-2 border border-slate-200">
             <div className="flex items-center justify-between pb-1 text-on-surface-variant font-mono text-[11px] tracking-wider">
               <span className="text-outline">CANONICAL LINE NOTATION</span>
-              <span className="font-mono text-[11px] text-tertiary">
+              <span className="font-mono text-[11px] text-tertiary font-semibold">
                 {smiles.length} chars
               </span>
             </div>
@@ -95,13 +95,13 @@ export default function SmilesInput({
               onChange={(e) => setSmiles(e.target.value)}
               placeholder="e.g. CN1C=NC2=C1C(=O)N(C(=O)N2C)C"
               disabled={loading}
-              className="w-full bg-transparent resize-none font-mono text-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-1 focus:ring-primary leading-relaxed tracking-wide selection:bg-primary/30"
+              className="w-full bg-transparent resize-none font-mono text-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-1 focus:ring-primary leading-relaxed tracking-wide selection:bg-primary/20"
             />
           </div>
 
           {/* Molecular Parameter Badges Preview Bar */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
-            <div className="flex flex-col bg-surface-container-low p-2.5 rounded">
+            <div className="flex flex-col bg-surface-container-low border border-slate-200/80 p-2.5 rounded-lg">
               <span className="font-mono text-[10px] text-outline uppercase tracking-wider">
                 Mol Weight
               </span>
@@ -110,7 +110,7 @@ export default function SmilesInput({
                 <span className="text-[10px] text-outline-variant font-normal">Da</span>
               </span>
             </div>
-            <div className="flex flex-col bg-surface-container-low p-2.5 rounded">
+            <div className="flex flex-col bg-surface-container-low border border-slate-200/80 p-2.5 rounded-lg">
               <span className="font-mono text-[10px] text-outline uppercase tracking-wider">
                 cLogP (oct/wat)
               </span>
@@ -118,7 +118,7 @@ export default function SmilesInput({
                 {liveFeatures?.logp ?? "—"}
               </span>
             </div>
-            <div className="flex flex-col bg-surface-container-low p-2.5 rounded">
+            <div className="flex flex-col bg-surface-container-low border border-slate-200/80 p-2.5 rounded-lg">
               <span className="font-mono text-[10px] text-outline uppercase tracking-wider">
                 TPSA
               </span>
@@ -127,7 +127,7 @@ export default function SmilesInput({
                 <span className="text-[10px] text-outline-variant font-normal">Å²</span>
               </span>
             </div>
-            <div className="flex flex-col bg-surface-container-low p-2.5 rounded">
+            <div className="flex flex-col bg-surface-container-low border border-slate-200/80 p-2.5 rounded-lg">
               <span className="font-mono text-[10px] text-outline uppercase tracking-wider">
                 H-Bond Donors
               </span>
@@ -135,7 +135,7 @@ export default function SmilesInput({
                 {liveFeatures?.h_donors ?? "—"}
               </span>
             </div>
-            <div className="flex flex-col bg-surface-container-low p-2.5 rounded">
+            <div className="flex flex-col bg-surface-container-low border border-slate-200/80 p-2.5 rounded-lg">
               <span className="font-mono text-[10px] text-outline uppercase tracking-wider">
                 H-Bond Acc
               </span>
@@ -149,17 +149,17 @@ export default function SmilesInput({
           <button
             type="submit"
             disabled={loading || !smiles.trim()}
-            className="w-full relative flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-gradient-to-r from-primary-container to-tertiary-container hover:shadow-[0_0_24px_rgba(6,182,212,0.4)] text-on-primary font-bold text-base transition-all transform active:scale-[0.99] disabled:opacity-50"
+            className="w-full relative flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-gradient-to-r from-primary to-tertiary text-white shadow-md hover:opacity-95 font-bold text-base transition-all transform active:scale-[0.99] disabled:opacity-50"
           >
             {loading ? (
               <>
-                <span className="material-symbols-outlined text-[20px] animate-spin">sync</span>
-                <span>Calculating RDKit Descriptors & SHAP Inference...</span>
+                <span className="material-symbols-outlined text-[20px] animate-spin text-white">sync</span>
+                <span className="text-white">Calculating RDKit Descriptors & SHAP Inference...</span>
               </>
             ) : (
               <>
-                <span className="text-surface-container-lowest">Predict BBB Permeability</span>
-                <span className="material-symbols-outlined text-[20px] text-surface-container-lowest">
+                <span className="text-white">Predict BBB Permeability</span>
+                <span className="material-symbols-outlined text-[20px] text-white">
                   arrow_forward
                 </span>
               </>

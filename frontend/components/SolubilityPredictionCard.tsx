@@ -17,19 +17,19 @@ export default function SolubilityPredictionCard({ result }: Props) {
   const strokeDashoffset = 264 - (264 * normalizedPct) / 100;
 
   const colorClass = isHigh
-    ? "text-cyan-400"
+    ? "text-cyan-700"
     : isModerate
-    ? "text-amber-400"
-    : "text-rose-400";
+    ? "text-amber-700"
+    : "text-rose-700";
 
   const badgeClass = isHigh
-    ? "bg-cyan-500/20 text-cyan-400 shadow-[0_0_16px_rgba(34,211,238,0.3)]"
+    ? "bg-cyan-500/15 text-cyan-700 shadow-sm"
     : isModerate
-    ? "bg-amber-500/20 text-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.3)]"
-    : "bg-rose-500/20 text-rose-400 shadow-[0_0_16px_rgba(244,63,94,0.3)]";
+    ? "bg-amber-500/15 text-amber-700 shadow-sm"
+    : "bg-rose-500/15 text-rose-700 shadow-sm";
 
   return (
-    <div className="relative overflow-hidden bg-surface-container rounded-xl p-6 shadow-xl flex flex-col gap-6 border border-slate-800/80">
+    <div className="relative overflow-hidden bg-surface-container rounded-xl p-6 shadow-sm flex flex-col gap-6 border border-slate-200">
       {/* Background Glow */}
       <div
         className={`absolute -left-10 -bottom-10 w-48 h-48 rounded-full blur-3xl pointer-events-none ${
@@ -95,7 +95,7 @@ export default function SolubilityPredictionCard({ result }: Props) {
 
       {/* Physicochemical Metric Grid */}
       <div className="grid grid-cols-2 gap-3 relative z-10">
-        <div className="bg-surface-container-low p-3 rounded-lg shadow-sm border border-slate-800/40">
+        <div className="bg-surface-container-low p-3 rounded-lg shadow-sm border border-slate-200">
           <span className="font-mono text-[10px] text-on-surface-variant uppercase">
             Aqueous LogS
           </span>
@@ -110,7 +110,7 @@ export default function SolubilityPredictionCard({ result }: Props) {
           </p>
         </div>
 
-        <div className="bg-surface-container-low p-3 rounded-lg shadow-sm border border-slate-800/40">
+        <div className="bg-surface-container-low p-3 rounded-lg shadow-sm border border-slate-200">
           <span className="font-mono text-[10px] text-on-surface-variant uppercase">
             Formulation Risk
           </span>
@@ -126,12 +126,12 @@ export default function SolubilityPredictionCard({ result }: Props) {
       </div>
 
       {/* Rationale Sentence Callout */}
-      <div className="relative z-10 bg-surface-container-lowest/80 p-4 rounded-lg border border-slate-800/60 flex flex-col gap-1.5">
+      <div className="relative z-10 bg-surface-container-lowest p-4 rounded-lg border border-slate-200 flex flex-col gap-1.5">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-[16px] text-cyan-400">
+          <span className="material-symbols-outlined text-[16px] text-cyan-700">
             science
           </span>
-          <span className="font-mono text-xs uppercase tracking-wider text-cyan-400 font-bold">
+          <span className="font-mono text-xs uppercase tracking-wider text-cyan-700 font-bold">
             Thermodynamic Solvation Rationale
           </span>
         </div>

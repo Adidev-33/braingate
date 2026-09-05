@@ -32,7 +32,7 @@ export default function ComparisonView() {
   return (
     <div className="flex flex-col gap-6">
       {/* Comparison Form Input Card */}
-      <div className="bg-surface-container rounded-xl p-6 shadow-xl flex flex-col gap-4">
+      <div className="bg-surface-container rounded-xl p-6 shadow-sm border border-slate-200 flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-[20px] text-primary">compare_arrows</span>
           <h2 className="text-base font-bold text-on-surface">Molecule Side-by-Side Comparison</h2>
@@ -52,7 +52,7 @@ export default function ComparisonView() {
               onChange={(e) => setSmiles1(e.target.value)}
               placeholder="e.g. Caffeine SMILES"
               disabled={loading}
-              className="w-full px-3 py-2 bg-surface-container-lowest border border-slate-800 rounded-lg text-xs font-mono text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full px-3 py-2 bg-surface-container-lowest border border-slate-200 rounded-lg text-xs font-mono text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
@@ -66,7 +66,7 @@ export default function ComparisonView() {
               onChange={(e) => setSmiles2(e.target.value)}
               placeholder="e.g. Dopamine SMILES"
               disabled={loading}
-              className="w-full px-3 py-2 bg-surface-container-lowest border border-slate-800 rounded-lg text-xs font-mono text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full px-3 py-2 bg-surface-container-lowest border border-slate-200 rounded-lg text-xs font-mono text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
@@ -74,17 +74,17 @@ export default function ComparisonView() {
             <button
               type="submit"
               disabled={loading || !smiles1.trim() || !smiles2.trim()}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-primary-container to-tertiary-container text-on-primary font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-tertiary text-white font-bold text-sm shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? (
                 <>
-                  <span className="material-symbols-outlined text-[18px] animate-spin">sync</span>
-                  <span>Comparing Molecule Structures...</span>
+                  <span className="material-symbols-outlined text-[18px] animate-spin text-white">sync</span>
+                  <span className="text-white">Comparing Molecule Structures...</span>
                 </>
               ) : (
                 <>
-                  <span>Run Side-by-Side Comparison</span>
-                  <span className="material-symbols-outlined text-[18px]">compare_arrows</span>
+                  <span className="text-white">Run Side-by-Side Comparison</span>
+                  <span className="material-symbols-outlined text-[18px] text-white">compare_arrows</span>
                 </>
               )}
             </button>
@@ -100,7 +100,7 @@ export default function ComparisonView() {
 
       {/* Deciding Difference Callout Banner */}
       {result && (
-        <div className="p-5 rounded-xl bg-surface-container-high border border-primary/30 shadow-lg flex items-start gap-3">
+        <div className="p-5 rounded-xl bg-surface-container-high border border-primary/30 shadow-sm flex items-start gap-3">
           <span className="material-symbols-outlined text-primary text-[24px] shrink-0 mt-0.5">
             tune
           </span>
